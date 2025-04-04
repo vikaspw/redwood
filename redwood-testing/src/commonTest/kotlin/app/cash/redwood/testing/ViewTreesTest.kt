@@ -18,6 +18,9 @@ package app.cash.redwood.testing
 import androidx.compose.runtime.BroadcastFrameClock
 import androidx.compose.runtime.Composable
 import app.cash.redwood.RedwoodCodegenApi
+import app.cash.redwood.basic.compose.Text
+import app.cash.redwood.basic.testing.RedwoodBasicTestingWidgetFactory
+import app.cash.redwood.basic.testing.TextValue
 import app.cash.redwood.compose.current
 import app.cash.redwood.layout.testing.RedwoodLayoutTestingWidgetFactory
 import app.cash.redwood.lazylayout.testing.RedwoodLazyLayoutTestingWidgetFactory
@@ -45,12 +48,10 @@ import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
 import com.example.redwood.testapp.compose.Split
 import com.example.redwood.testapp.compose.TestRow
-import com.example.redwood.testapp.compose.Text
 import com.example.redwood.testapp.protocol.guest.TestSchemaProtocolWidgetSystemFactory
 import com.example.redwood.testapp.protocol.host.TestSchemaProtocolFactory
 import com.example.redwood.testapp.testing.TestSchemaTester
 import com.example.redwood.testapp.testing.TestSchemaTestingWidgetFactory
-import com.example.redwood.testapp.testing.TextValue
 import com.example.redwood.testapp.widget.TestSchemaWidgetSystem
 import kotlin.test.Test
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,23 +85,23 @@ class ViewTreesTest {
       ModifierChange(Id(1), emptyList()),
       Create(Id(2), WidgetTag(1)),
       ModifierChange(Id(2), emptyList()),
-      Create(Id(3), WidgetTag(3)),
-      PropertyChange(Id(3), WidgetTag(3), PropertyTag(1), JsonPrimitive("One Fish")),
+      Create(Id(3), WidgetTag(1000002)),
+      PropertyChange(Id(3), WidgetTag(1000002), PropertyTag(1), JsonPrimitive("One Fish")),
       ModifierChange(Id(3), emptyList()),
       Add(Id(2), ChildrenTag(1), Id(3), 0),
-      Create(Id(4), WidgetTag(3)),
-      PropertyChange(Id(4), WidgetTag(3), PropertyTag(1), JsonPrimitive("Two Fish")),
+      Create(Id(4), WidgetTag(1000002)),
+      PropertyChange(Id(4), WidgetTag(1000002), PropertyTag(1), JsonPrimitive("Two Fish")),
       ModifierChange(Id(4), emptyList()),
       Add(Id(2), ChildrenTag(1), Id(4), 1),
       Add(Id(1), ChildrenTag(1), Id(2), 0),
       Create(Id(5), WidgetTag(1)),
       ModifierChange(Id(5), emptyList()),
-      Create(Id(6), WidgetTag(3)),
-      PropertyChange(Id(6), WidgetTag(3), PropertyTag(1), JsonPrimitive("Red Fish")),
+      Create(Id(6), WidgetTag(1000002)),
+      PropertyChange(Id(6), WidgetTag(1000002), PropertyTag(1), JsonPrimitive("Red Fish")),
       ModifierChange(Id(6), emptyList()),
       Add(Id(5), ChildrenTag(1), Id(6), 0),
-      Create(Id(7), WidgetTag(3)),
-      PropertyChange(Id(7), WidgetTag(3), PropertyTag(1), JsonPrimitive("Blue Fish")),
+      Create(Id(7), WidgetTag(1000002)),
+      PropertyChange(Id(7), WidgetTag(1000002), PropertyTag(1), JsonPrimitive("Blue Fish")),
       ModifierChange(Id(7), emptyList()),
       Add(Id(5), ChildrenTag(1), Id(7), 1),
       Add(Id(1), ChildrenTag(1), Id(5), 1),
@@ -140,6 +141,7 @@ class ViewTreesTest {
     // Ensure when the changes are applied with the widget protocol we get equivalent values.
     val widgetSystem = TestSchemaWidgetSystem(
       TestSchema = TestSchemaTestingWidgetFactory(),
+      RedwoodBasic = RedwoodBasicTestingWidgetFactory(),
       RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
       RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
     )
