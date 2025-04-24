@@ -47,11 +47,11 @@ import app.cash.redwood.ui.Density
 import app.cash.redwood.ui.Margin
 import app.cash.redwood.widget.compose.ComposeWidgetChildren
 
-internal class ComposeUiBox(
+public open class ComposeUiBox(
   private val backgroundColor: Int = 0,
 ) : Box<@Composable () -> Unit> {
   private var modifierTick by mutableIntStateOf(0)
-  override val children = ComposeWidgetChildren(onModifierUpdated = { modifierTick++ })
+  override val children: ComposeWidgetChildren = ComposeWidgetChildren(onModifierUpdated = { modifierTick++ })
 
   private var width by mutableStateOf(Constraint.Wrap)
   private var height by mutableStateOf(Constraint.Wrap)
@@ -61,7 +61,7 @@ internal class ComposeUiBox(
   private var matchParentHeight by mutableStateOf(false)
   private var density by mutableStateOf(Density(1.0))
 
-  override val value = @Composable {
+  override val value: @Composable () -> Unit = @Composable {
     density = Density(LocalDensity.current.density.toDouble())
 
     Box(
@@ -73,7 +73,7 @@ internal class ComposeUiBox(
   }
 
   @Composable
-  private fun computeChildrenLayoutInfo(): BoxChildrenLayoutInfo {
+  public open fun computeChildrenLayoutInfo(): BoxChildrenLayoutInfo {
     // Observe the layout modifier count so we recompose if it changes.
     modifierTick
 
@@ -143,7 +143,7 @@ internal class ComposeUiBox(
   }
 
   @Composable
-  private fun computeModifier(): Modifier {
+  public open fun computeModifier(): Modifier {
     var modifier: Modifier = Modifier
     modifier = if (width == Constraint.Fill) {
       modifier.fillMaxWidth()

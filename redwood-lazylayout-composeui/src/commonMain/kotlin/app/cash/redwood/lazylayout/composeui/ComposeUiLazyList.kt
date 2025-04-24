@@ -51,27 +51,27 @@ import app.cash.redwood.ui.toPlatformDp
 import app.cash.redwood.widget.compose.ComposeWidgetChildren
 
 @OptIn(ExperimentalMaterialApi::class)
-internal class ComposeUiLazyList : LazyList<@Composable () -> Unit> {
-  private var isVertical by mutableStateOf(false)
-  private var onViewportChanged: ((firstVisibleItemIndex: Int, lastVisibleItemIndex: Int) -> Unit)? by mutableStateOf(null)
-  private var itemsBefore by mutableIntStateOf(0)
-  private var itemsAfter by mutableIntStateOf(0)
-  private var isRefreshing by mutableStateOf(false)
-  private var onRefresh: (() -> Unit)? by mutableStateOf(null)
-  private var width by mutableStateOf(Constraint.Wrap)
-  private var height by mutableStateOf(Constraint.Wrap)
-  private var margin by mutableStateOf(Margin.Zero)
-  private var crossAxisAlignment by mutableStateOf(CrossAxisAlignment.Start)
-  private var scrollItemIndex by mutableStateOf<ScrollItemIndex?>(null)
-  private var pullRefreshContentColor by mutableStateOf(Color.Black)
+public open class ComposeUiLazyList : LazyList<@Composable () -> Unit> {
+  public  var isVertical: Boolean by mutableStateOf(false)
+  public var onViewportChanged: ((firstVisibleItemIndex: Int, lastVisibleItemIndex: Int) -> Unit)? by mutableStateOf(null)
+  public var itemsBefore: Int by mutableIntStateOf(0)
+  public var itemsAfter: Int by mutableIntStateOf(0)
+  public var isRefreshing: Boolean by mutableStateOf(false)
+  public var onRefresh: (() -> Unit)? by mutableStateOf(null)
+  public var width: Constraint by mutableStateOf(Constraint.Wrap)
+  public var height: Constraint by mutableStateOf(Constraint.Wrap)
+  public var margin: Margin by mutableStateOf(Margin.Zero)
+  public var crossAxisAlignment: CrossAxisAlignment by mutableStateOf(CrossAxisAlignment.Start)
+  public var scrollItemIndex: ScrollItemIndex? by mutableStateOf<ScrollItemIndex?>(null)
+  public var pullRefreshContentColor: Color by mutableStateOf(Color.Black)
 
   internal var testOnlyModifier: Modifier? = null
 
   override var modifier: RedwoodModifier = RedwoodModifier
 
-  override val placeholder = ComposeWidgetChildren()
+  override val placeholder: ComposeWidgetChildren = ComposeWidgetChildren()
 
-  override val items = ComposeWidgetChildren()
+  override val items: ComposeWidgetChildren = ComposeWidgetChildren()
 
   override fun isVertical(isVertical: Boolean) {
     this.isVertical = isVertical
@@ -89,11 +89,11 @@ internal class ComposeUiLazyList : LazyList<@Composable () -> Unit> {
     this.itemsAfter = itemsAfter
   }
 
-  fun refreshing(refreshing: Boolean) {
+  public fun refreshing(refreshing: Boolean) {
     this.isRefreshing = refreshing
   }
 
-  fun onRefresh(onRefresh: (() -> Unit)?) {
+  public fun onRefresh(onRefresh: (() -> Unit)?) {
     this.onRefresh = onRefresh
   }
 
@@ -117,7 +117,7 @@ internal class ComposeUiLazyList : LazyList<@Composable () -> Unit> {
     this.scrollItemIndex = scrollItemIndex
   }
 
-  fun pullRefreshContentColor(pullRefreshContentColor: UInt) {
+  public fun pullRefreshContentColor(pullRefreshContentColor: UInt) {
     this.pullRefreshContentColor = Color(pullRefreshContentColor.toLong())
   }
 
@@ -206,25 +206,25 @@ internal class ComposeUiLazyList : LazyList<@Composable () -> Unit> {
   }
 }
 
-internal class ComposeUiRefreshableLazyList : RefreshableLazyList<@Composable () -> Unit> {
+public open class ComposeUiRefreshableLazyList : RefreshableLazyList<@Composable () -> Unit> {
   private val delegate = ComposeUiLazyList()
 
-  override val value get() = delegate.value
-  override var modifier by delegate::modifier
+  override val value: @Composable () -> Unit get() = delegate.value
+  override var modifier: app.cash.redwood.Modifier by delegate::modifier
 
-  override val placeholder get() = delegate.placeholder
-  override val items get() = delegate.items
+  override val placeholder: ComposeWidgetChildren get() = delegate.placeholder
+  override val items: ComposeWidgetChildren get() = delegate.items
 
-  override fun isVertical(isVertical: Boolean) = delegate.isVertical(isVertical)
-  override fun onViewportChanged(onViewportChanged: (Int, Int) -> Unit) = delegate.onViewportChanged(onViewportChanged)
-  override fun itemsBefore(itemsBefore: Int) = delegate.itemsBefore(itemsBefore)
-  override fun itemsAfter(itemsAfter: Int) = delegate.itemsAfter(itemsAfter)
-  override fun refreshing(refreshing: Boolean) = delegate.refreshing(refreshing)
-  override fun onRefresh(onRefresh: (() -> Unit)?) = delegate.onRefresh(onRefresh)
-  override fun width(width: Constraint) = delegate.width(width)
-  override fun height(height: Constraint) = delegate.height(height)
-  override fun margin(margin: Margin) = delegate.margin(margin)
-  override fun crossAxisAlignment(crossAxisAlignment: CrossAxisAlignment) = delegate.crossAxisAlignment(crossAxisAlignment)
-  override fun scrollItemIndex(scrollItemIndex: ScrollItemIndex) = delegate.scrollItemIndex(scrollItemIndex)
-  override fun pullRefreshContentColor(pullRefreshContentColor: UInt) = delegate.pullRefreshContentColor(pullRefreshContentColor)
+  override fun isVertical(isVertical: Boolean): Unit = delegate.isVertical(isVertical)
+  override fun onViewportChanged(onViewportChanged: (Int, Int) -> Unit): Unit = delegate.onViewportChanged(onViewportChanged)
+  override fun itemsBefore(itemsBefore: Int): Unit = delegate.itemsBefore(itemsBefore)
+  override fun itemsAfter(itemsAfter: Int): Unit = delegate.itemsAfter(itemsAfter)
+  override fun refreshing(refreshing: Boolean): Unit = delegate.refreshing(refreshing)
+  override fun onRefresh(onRefresh: (() -> Unit)?): Unit = delegate.onRefresh(onRefresh)
+  override fun width(width: Constraint): Unit = delegate.width(width)
+  override fun height(height: Constraint): Unit = delegate.height(height)
+  override fun margin(margin: Margin): Unit = delegate.margin(margin)
+  override fun crossAxisAlignment(crossAxisAlignment: CrossAxisAlignment): Unit = delegate.crossAxisAlignment(crossAxisAlignment)
+  override fun scrollItemIndex(scrollItemIndex: ScrollItemIndex): Unit = delegate.scrollItemIndex(scrollItemIndex)
+  override fun pullRefreshContentColor(pullRefreshContentColor: UInt): Unit = delegate.pullRefreshContentColor(pullRefreshContentColor)
 }

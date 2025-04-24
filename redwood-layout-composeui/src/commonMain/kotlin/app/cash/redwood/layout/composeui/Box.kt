@@ -41,7 +41,7 @@ import kotlin.math.max
  * - Supports stretching children along each axis individually.
  */
 @Composable
-internal inline fun Box(
+public inline fun Box(
   childrenLayoutInfo: BoxChildrenLayoutInfo,
   modifier: Modifier = Modifier,
   propagateMinConstraints: Boolean = false,
@@ -59,12 +59,12 @@ internal inline fun Box(
 
 /** Wrapper class to ensure argument stability when passed to a Compose function. */
 @Immutable
-internal data class BoxChildrenLayoutInfo(
+public data class BoxChildrenLayoutInfo(
   val infos: List<BoxChildLayoutInfo>,
 )
 
 @Immutable
-internal data class BoxChildLayoutInfo(
+public data class BoxChildLayoutInfo(
   val alignment: Alignment,
   val matchParentWidth: Boolean,
   val matchParentHeight: Boolean,

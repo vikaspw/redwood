@@ -58,45 +58,44 @@ import app.cash.redwood.yoga.Node
 import app.cash.redwood.yoga.Size
 import app.cash.redwood.yoga.isHorizontal
 
-internal class ComposeUiColumn : Column<@Composable () -> Unit> {
+public open class ComposeUiColumn : Column<@Composable () -> Unit> {
   internal val container = ComposeUiFlexContainer(FlexDirection.Column)
 
-  override val value get() = container.value
-  override var modifier by container::modifier
-  override val children get() = container.children
+  override val value: @Composable () -> Unit get() = container.value
+  override var modifier: app.cash.redwood.Modifier by container::modifier
+  override val children: ComposeWidgetChildren get() = container.children
 
-  override fun width(width: Constraint) = container.width(width)
-  override fun height(height: Constraint) = container.height(height)
-  override fun margin(margin: Margin) = container.margin(margin)
-  override fun overflow(overflow: Overflow) = container.overflow(overflow)
-  override fun horizontalAlignment(horizontalAlignment: CrossAxisAlignment) = container.horizontalAlignment(horizontalAlignment)
-  override fun verticalAlignment(verticalAlignment: MainAxisAlignment) = container.verticalAlignment(verticalAlignment)
-  override fun onScroll(onScroll: ((Px) -> Unit)?) = container.onScroll(onScroll)
+  override fun width(width: Constraint): Unit = container.width(width)
+  override fun height(height: Constraint): Unit = container.height(height)
+  override fun margin(margin: Margin): Unit = container.margin(margin)
+  override fun overflow(overflow: Overflow): Unit = container.overflow(overflow)
+  override fun horizontalAlignment(horizontalAlignment: CrossAxisAlignment): Unit = container.horizontalAlignment(horizontalAlignment)
+  override fun verticalAlignment(verticalAlignment: MainAxisAlignment): Unit = container.verticalAlignment(verticalAlignment)
+  override fun onScroll(onScroll: ((Px) -> Unit)?): Unit = container.onScroll(onScroll)
 }
 
-internal class ComposeUiRow : Row<@Composable () -> Unit> {
+public open class ComposeUiRow : Row<@Composable () -> Unit> {
   internal val container = ComposeUiFlexContainer(FlexDirection.Row)
 
-  override val value get() = container.value
-  override var modifier by container::modifier
-  override val children get() = container.children
+  override val value:@Composable () -> Unit get() = container.value
+  override var modifier: app.cash.redwood.Modifier by container::modifier
+  override val children: ComposeWidgetChildren get() = container.children
 
-  override fun width(width: Constraint) = container.width(width)
-  override fun height(height: Constraint) = container.height(height)
-  override fun margin(margin: Margin) = container.margin(margin)
-  override fun overflow(overflow: Overflow) = container.overflow(overflow)
-  override fun horizontalAlignment(horizontalAlignment: MainAxisAlignment) = container.horizontalAlignment(horizontalAlignment)
-  override fun verticalAlignment(verticalAlignment: CrossAxisAlignment) = container.verticalAlignment(verticalAlignment)
-  override fun onScroll(onScroll: ((Px) -> Unit)?) = container.onScroll(onScroll)
+  override fun width(width: Constraint): Unit = container.width(width)
+  override fun height(height: Constraint): Unit = container.height(height)
+  override fun margin(margin: Margin): Unit = container.margin(margin)
+  override fun overflow(overflow: Overflow): Unit = container.overflow(overflow)
+  override fun horizontalAlignment(horizontalAlignment: MainAxisAlignment): Unit = container.horizontalAlignment(horizontalAlignment)
+  override fun verticalAlignment(verticalAlignment: CrossAxisAlignment): Unit = container.verticalAlignment(verticalAlignment)
+  override fun onScroll(onScroll: ((Px) -> Unit)?): Unit = container.onScroll(onScroll)
 }
-
-internal class ComposeUiFlexContainer(
+public open class ComposeUiFlexContainer(
   private val flexDirection: FlexDirection,
 ) : YogaFlexContainer<@Composable () -> Unit> {
-  override val rootNode = Node().apply {
+  override val rootNode: Node = Node().apply {
     flexDirection = this@ComposeUiFlexContainer.flexDirection
   }
-  override val children = ComposeWidgetChildren()
+  override val children: ComposeWidgetChildren = ComposeWidgetChildren()
   override var modifier: RedwoodModifier = RedwoodModifier
 
   private var recomposeTick by mutableIntStateOf(0)
@@ -105,7 +104,7 @@ internal class ComposeUiFlexContainer(
   private var overflow by mutableStateOf(Overflow.Clip)
   private var margin by mutableStateOf(Margin.Zero)
   private var onScroll: ((Px) -> Unit)? by mutableStateOf(null)
-  override var density = Density(1.0)
+  override var density: Density = Density(1.0)
 
   internal var testOnlyModifier: Modifier? = null
   internal var scrollState: ScrollState? = null
@@ -147,29 +146,33 @@ internal class ComposeUiFlexContainer(
 
   override val value: @Composable () -> Unit = @Composable {
     Layout(
-      content = {
-        // Observe this so we can manually trigger recomposition.
-        recomposeTick
-
-        // Apply the margin.
-        density = Density(LocalDensity.current.density.toDouble())
-        with(rootNode) {
-          direction = when (LocalLayoutDirection.current) {
-            LayoutDirection.Ltr -> Direction.LTR
-            LayoutDirection.Rtl -> Direction.RTL
-          }
-        }
-        super.margin(margin)
-
-        children.Render()
-      },
+      content = content(),
       modifier = computeModifier(),
       measurePolicy = ::measure,
     )
   }
 
   @Composable
-  private fun computeModifier(): Modifier {
+  public open fun content():@Composable () -> Unit = {
+    // Observe this so we can manually trigger recomposition.
+    recomposeTick
+
+    // Apply the margin.
+    density = Density(LocalDensity.current.density.toDouble())
+    with(rootNode) {
+      direction = when (LocalLayoutDirection.current) {
+        LayoutDirection.Ltr -> Direction.LTR
+        LayoutDirection.Rtl -> Direction.RTL
+      }
+    }
+    super.margin(margin)
+
+    children.Render()
+  }
+
+
+  @Composable
+  public open fun computeModifier(): Modifier {
     var modifier: Modifier = Modifier
     modifier = if (width == Constraint.Fill) {
       modifier.fillMaxWidth()
@@ -205,7 +208,7 @@ internal class ComposeUiFlexContainer(
     }
   }
 
-  private fun measure(
+  public open fun measure(
     scope: MeasureScope,
     measurables: List<Measurable>,
     constraints: Constraints,

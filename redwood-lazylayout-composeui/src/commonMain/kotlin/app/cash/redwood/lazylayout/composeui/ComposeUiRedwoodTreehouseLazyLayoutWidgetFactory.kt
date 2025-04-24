@@ -20,7 +20,7 @@ import app.cash.redwood.lazylayout.widget.LazyList
 import app.cash.redwood.lazylayout.widget.RedwoodLazyLayoutWidgetFactory
 import app.cash.redwood.lazylayout.widget.RefreshableLazyList
 
-public class ComposeUiRedwoodLazyLayoutWidgetFactory : RedwoodLazyLayoutWidgetFactory<@Composable () -> Unit> {
+public open class ComposeUiRedwoodLazyLayoutWidgetFactory : RedwoodLazyLayoutWidgetFactory<@Composable () -> Unit> {
   override fun LazyList(): LazyList<@Composable () -> Unit> =
     ComposeUiLazyList()
 
