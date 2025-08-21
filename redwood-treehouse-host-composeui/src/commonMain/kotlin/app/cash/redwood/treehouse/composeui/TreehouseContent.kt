@@ -37,7 +37,6 @@ import app.cash.redwood.treehouse.TreehouseApp
 import app.cash.redwood.treehouse.TreehouseContentSource
 import app.cash.redwood.treehouse.TreehouseView
 import app.cash.redwood.treehouse.TreehouseView.ReadyForContentChangeListener
-import app.cash.redwood.treehouse.TreehouseView.WidgetSystem
 import app.cash.redwood.treehouse.bindWhenReady
 import app.cash.redwood.ui.Density
 import app.cash.redwood.ui.LayoutDirection as RedwoodLayoutDirection
@@ -47,16 +46,17 @@ import app.cash.redwood.ui.Size
 import app.cash.redwood.ui.UiConfiguration
 import app.cash.redwood.ui.dp as redwoodDp
 import app.cash.redwood.widget.SavedStateRegistry
+import app.cash.redwood.widget.WidgetSystem
 import app.cash.redwood.widget.compose.ComposeWidgetChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 public fun <A : AppService> TreehouseContent(
   treehouseApp: TreehouseApp<A>,
-  widgetSystem: WidgetSystem<@Composable () -> Unit>,
+  widgetSystem: WidgetSystem<@Composable (Modifier) -> Unit>,
   contentSource: TreehouseContentSource<A>,
   modifier: Modifier = Modifier,
-  dynamicContentWidgetFactory: DynamicContentWidgetFactory<@Composable () -> Unit> =
+  dynamicContentWidgetFactory: DynamicContentWidgetFactory<@Composable (Modifier) -> Unit> =
     EmptyDynamicContentWidgetFactory,
 ) {
   val onBackPressedDispatcher = platformOnBackPressedDispatcher()
@@ -75,10 +75,10 @@ public fun <A : AppService> TreehouseContent(
     },
   )
   val treehouseView = remember(widgetSystem) {
-    object : TreehouseView<@Composable () -> Unit> {
+    object : TreehouseView<@Composable (Modifier) -> Unit> {
       override val children: ComposeWidgetChildren = ComposeWidgetChildren()
 
-      override val value: @Composable () -> Unit = {
+      override val value: @Composable (Modifier) -> Unit = {
         children.Render()
       }
 
@@ -91,7 +91,7 @@ public fun <A : AppService> TreehouseContent(
       override val savedStateRegistry: SavedStateRegistry? get() = null
       override val widgetSystem = widgetSystem
       override val readyForContent = true
-      override var readyForContentChangeListener: ReadyForContentChangeListener<@Composable () -> Unit>? = null
+      override var readyForContentChangeListener: ReadyForContentChangeListener<@Composable (Modifier) -> Unit>? = null
       override var saveCallback: TreehouseView.SaveCallback? = null
       override val stateSnapshotId = StateSnapshot.Id(null)
     }
@@ -113,7 +113,7 @@ public fun <A : AppService> TreehouseContent(
       }
     },
   ) {
-    treehouseView.value()
+    treehouseView.value(Modifier)
   }
 }
 

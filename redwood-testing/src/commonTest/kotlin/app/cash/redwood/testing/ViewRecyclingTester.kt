@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
-import app.cash.redwood.RedwoodCodegenApi
 import app.cash.redwood.layout.testing.RedwoodLayoutTestingWidgetFactory
 import app.cash.redwood.lazylayout.testing.RedwoodLazyLayoutTestingWidgetFactory
 import app.cash.redwood.leaks.LeakDetector
@@ -27,6 +26,7 @@ import app.cash.redwood.protocol.guest.DefaultGuestProtocolAdapter
 import app.cash.redwood.protocol.guest.GuestProtocolAdapter
 import app.cash.redwood.protocol.guest.guestRedwoodVersion
 import app.cash.redwood.protocol.host.HostProtocolAdapter
+import app.cash.redwood.protocol.host.UiChange
 import app.cash.redwood.protocol.host.hostRedwoodVersion
 import app.cash.redwood.ui.basic.testing.RedwoodUiBasicTestingWidgetFactory
 import app.cash.redwood.widget.MutableListChildren
@@ -36,13 +36,12 @@ import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import com.example.redwood.testapp.protocol.guest.TestSchemaProtocolWidgetSystemFactory
-import com.example.redwood.testapp.protocol.host.TestSchemaProtocolFactory
+import com.example.redwood.testapp.protocol.host.TestSchemaHostProtocol
 import com.example.redwood.testapp.testing.TestSchemaTester
 import com.example.redwood.testapp.testing.TestSchemaTestingWidgetFactory
 import com.example.redwood.testapp.widget.TestSchemaWidgetSystem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
-import kotlinx.serialization.json.Json
 
 /**
  * Like [TestSchemaTester], but this also hooks up Redwood's protocol mechanism. That's necessary
@@ -51,24 +50,21 @@ import kotlinx.serialization.json.Json
 class ViewRecyclingTester(
   coroutineScope: CoroutineScope,
 ) {
-  @OptIn(RedwoodCodegenApi::class)
-  private val widgetProtocolFactory = TestSchemaProtocolFactory(
+  private val widgetContainer = MutableListChildren<WidgetValue>()
+
+  private val protocol = TestSchemaHostProtocol.create()
+  val hostAdapter: HostProtocolAdapter<WidgetValue> = HostProtocolAdapter(
+    guestVersion = guestRedwoodVersion,
+    container = widgetContainer,
+    protocol = protocol,
     widgetSystem = TestSchemaWidgetSystem(
       TestSchema = TestSchemaTestingWidgetFactory(),
       RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
       RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
       RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
     ),
-  )
-
-  private val widgetContainer = MutableListChildren<WidgetValue>()
-
-  val hostAdapter: HostProtocolAdapter<WidgetValue> = HostProtocolAdapter(
-    guestVersion = guestRedwoodVersion,
-    container = widgetContainer,
-    factory = widgetProtocolFactory,
     eventSink = { event ->
-      guestAdapter.sendEvent(event.toProtocol(Json.Default))
+      guestAdapter.sendEvent(event.toProtocol())
     },
     leakDetector = LeakDetector.none(),
   )
@@ -77,7 +73,12 @@ class ViewRecyclingTester(
     hostVersion = hostRedwoodVersion,
     widgetSystemFactory = TestSchemaProtocolWidgetSystemFactory,
   ).apply {
-    initChangesSink(hostAdapter)
+    initChangesSink { changes ->
+      val uiChanges = changes.mapNotNull { change ->
+        UiChange.fromProtocol(protocol, change)
+      }
+      hostAdapter.sendChanges(uiChanges)
+    }
   }
 
   internal val composition = TestRedwoodComposition(

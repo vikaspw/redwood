@@ -51,7 +51,7 @@ import app.cash.redwood.ui.toPlatformDp
 import app.cash.redwood.widget.compose.ComposeWidgetChildren
 
 @OptIn(ExperimentalMaterialApi::class)
-public open class ComposeUiLazyList : LazyList<@Composable () -> Unit> {
+public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
   public  var isVertical: Boolean by mutableStateOf(false)
   public var onViewportChanged: ((firstVisibleItemIndex: Int, lastVisibleItemIndex: Int) -> Unit)? by mutableStateOf(null)
   public var itemsBefore: Int by mutableIntStateOf(0)
@@ -121,14 +121,20 @@ public open class ComposeUiLazyList : LazyList<@Composable () -> Unit> {
     this.pullRefreshContentColor = Color(pullRefreshContentColor.toLong())
   }
 
-  override val value: @Composable () -> Unit = @Composable {
+  override val value: @Composable (Modifier) -> Unit = { modifier ->
     val content: LazyListScope.() -> Unit = {
       items(items.widgets) { item ->
-        // TODO If CrossAxisAlignment is Stretch, pass Modifier.fillParentMaxWidth() to child widget.
-        item.value.invoke()
+        val modifier = if (crossAxisAlignment != CrossAxisAlignment.Stretch) {
+          Modifier
+        } else if (isVertical) {
+          Modifier.fillMaxWidth()
+        } else {
+          Modifier.fillMaxHeight()
+        }
+        item.value.invoke(modifier)
       }
     }
-    Box {
+    Box(modifier) {
       val refreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
@@ -206,7 +212,7 @@ public open class ComposeUiLazyList : LazyList<@Composable () -> Unit> {
   }
 }
 
-public open class ComposeUiRefreshableLazyList : RefreshableLazyList<@Composable () -> Unit> {
+public open class ComposeUiRefreshableLazyList : RefreshableLazyList<@Composable (Modifier) -> Unit> {
   private val delegate = ComposeUiLazyList()
 
   override val value: @Composable () -> Unit get() = delegate.value

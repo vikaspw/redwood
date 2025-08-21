@@ -34,7 +34,6 @@ kotlin {
     commonMain {
       dependencies {
         api projects.redwoodLayoutWidget
-        implementation projects.redwoodWidgetCompose
         implementation projects.redwoodWidgetSharedTest
         implementation projects.redwoodYoga
       }
@@ -48,4 +47,9 @@ kotlin {
       }
     }
   }
+}
+
+// Tests are consumed by Swift/XCode.
+tasks.withType(AbstractTestTask).configureEach {
+  failOnNoDiscoveredTests = false
 }

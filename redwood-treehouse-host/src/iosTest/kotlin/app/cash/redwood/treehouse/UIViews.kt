@@ -16,8 +16,9 @@
 package app.cash.redwood.treehouse
 
 import app.cash.redwood.Modifier
-import app.cash.redwood.treehouse.TreehouseView.WidgetSystem
+import app.cash.redwood.widget.ResizableWidget
 import app.cash.redwood.widget.Widget
+import app.cash.redwood.widget.WidgetSystem
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.cValue
 import kotlinx.cinterop.useContents
@@ -26,12 +27,17 @@ import platform.CoreGraphics.CGSize
 import platform.CoreGraphics.CGSizeMake
 import platform.UIKit.UIView
 
-fun viewWidget(view: UIView): Widget<UIView> = object : Widget<UIView> {
+fun viewWidget(view: UIView): Widget<UIView> = object : Widget<UIView>, ResizableWidget<UIView> {
   override val value: UIView get() = view
   override var modifier: Modifier = Modifier
+  override val allChildren: List<Widget.Children<UIView>>
+    get() = listOf()
+  override var sizeListener: ResizableWidget.SizeListener? = null
 }
 
-val throwingWidgetSystem = WidgetSystem<UIView> { _, _ -> throw UnsupportedOperationException() }
+val emptyWidgetSystem = object : WidgetSystem<UIView> {
+  override fun apply(value: UIView, element: Modifier.UnscopedElement) {}
+}
 
 val UIView.frameRectangle: Rectangle
   get() = frame.useContents { Rectangle(origin.x, origin.y, size.width, size.height) }

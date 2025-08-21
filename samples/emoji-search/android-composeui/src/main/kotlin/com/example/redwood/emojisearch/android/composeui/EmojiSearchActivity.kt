@@ -26,7 +26,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.SnackbarDuration.Indefinite
 import androidx.compose.material.SnackbarHost
 import androidx.compose.material.SnackbarHostState
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NoLiveLiterals
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
@@ -36,11 +35,10 @@ import app.cash.redwood.treehouse.EventListener
 import app.cash.redwood.treehouse.TreehouseApp
 import app.cash.redwood.treehouse.TreehouseAppFactory
 import app.cash.redwood.treehouse.TreehouseContentSource
-import app.cash.redwood.treehouse.TreehouseView.WidgetSystem
 import app.cash.redwood.treehouse.composeui.TreehouseContent
 import app.cash.redwood.ui.basic.composeui.ComposeUiRedwoodUiBasicWidgetSystem
 import app.cash.redwood.ui.basic.composeui.RedwoodUiBasicTheme
-import app.cash.redwood.ui.basic.protocol.host.RedwoodUiBasicProtocolFactory
+import app.cash.redwood.ui.basic.protocol.host.RedwoodUiBasicHostProtocol
 import app.cash.zipline.Zipline
 import app.cash.zipline.ZiplineManifest
 import app.cash.zipline.loader.ManifestVerifier
@@ -91,14 +89,6 @@ class EmojiSearchActivity : ComponentActivity() {
       }
       .build()
 
-    val widgetSystem = WidgetSystem { json, protocolMismatchHandler ->
-      RedwoodUiBasicProtocolFactory<@Composable () -> Unit>(
-        widgetSystem = ComposeUiRedwoodUiBasicWidgetSystem(imageLoader),
-        json = json,
-        mismatchHandler = protocolMismatchHandler,
-      )
-    }
-
     setContent {
       RedwoodUiBasicTheme {
         Scaffold(
@@ -106,7 +96,7 @@ class EmojiSearchActivity : ComponentActivity() {
         ) { contentPadding ->
           TreehouseContent(
             treehouseApp = treehouseApp,
-            widgetSystem = widgetSystem,
+            widgetSystem = ComposeUiRedwoodUiBasicWidgetSystem(imageLoader),
             contentSource = treehouseContentSource,
             modifier = Modifier.padding(contentPadding),
             dynamicContentWidgetFactory = EmojiSearchDynamicContentWidgetFactory(),
@@ -150,6 +140,7 @@ class EmojiSearchActivity : ComponentActivity() {
       embeddedFileSystem = applicationContext.assets.asFileSystem(),
       embeddedDir = "/".toPath(),
       leakDetector = leakDetector,
+      hostProtocolFactory = RedwoodUiBasicHostProtocol,
     )
 
     val manifestUrlFlow = flowOf("http://10.0.2.2:8080/manifest.zipline.json")

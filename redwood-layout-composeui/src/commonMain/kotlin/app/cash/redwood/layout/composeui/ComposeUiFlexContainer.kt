@@ -51,6 +51,7 @@ import app.cash.redwood.layout.widget.Row
 import app.cash.redwood.ui.Density
 import app.cash.redwood.ui.Margin
 import app.cash.redwood.ui.Px
+import app.cash.redwood.widget.Widget
 import app.cash.redwood.widget.compose.ComposeWidgetChildren
 import app.cash.redwood.yoga.Direction
 import app.cash.redwood.yoga.FlexDirection
@@ -58,7 +59,7 @@ import app.cash.redwood.yoga.Node
 import app.cash.redwood.yoga.Size
 import app.cash.redwood.yoga.isHorizontal
 
-public open class ComposeUiColumn : Column<@Composable () -> Unit> {
+public open class ComposeUiColumn : Column<@Composable (Modifier) -> Unit> {
   internal val container = ComposeUiFlexContainer(FlexDirection.Column)
 
   override val value: @Composable () -> Unit get() = container.value
@@ -74,7 +75,7 @@ public open class ComposeUiColumn : Column<@Composable () -> Unit> {
   override fun onScroll(onScroll: ((Px) -> Unit)?): Unit = container.onScroll(onScroll)
 }
 
-public open class ComposeUiRow : Row<@Composable () -> Unit> {
+public open class ComposeUiRow : Row<@Composable (Modifier) -> Unit> {
   internal val container = ComposeUiFlexContainer(FlexDirection.Row)
 
   override val value:@Composable () -> Unit get() = container.value
@@ -91,12 +92,13 @@ public open class ComposeUiRow : Row<@Composable () -> Unit> {
 }
 public open class ComposeUiFlexContainer(
   private val flexDirection: FlexDirection,
-) : YogaFlexContainer<@Composable () -> Unit> {
+) : YogaFlexContainer<@Composable (Modifier) -> Unit> {
   override val rootNode: Node = Node().apply {
     flexDirection = this@ComposeUiFlexContainer.flexDirection
   }
-  override val children: ComposeWidgetChildren = ComposeWidgetChildren()
   override var modifier: RedwoodModifier = RedwoodModifier
+  override val allChildren: List<Widget.Children<@Composable ((Modifier) -> Unit)>>
+    get() = listOf(children)
 
   private var recomposeTick by mutableIntStateOf(0)
   private var width by mutableStateOf(Constraint.Wrap)
@@ -144,7 +146,7 @@ public open class ComposeUiFlexContainer(
     recomposeTick++
   }
 
-  override val value: @Composable () -> Unit = @Composable {
+  override val value: @Composable (Modifier) -> Unit = { modifier ->
     Layout(
       content = content(),
       modifier = computeModifier(),

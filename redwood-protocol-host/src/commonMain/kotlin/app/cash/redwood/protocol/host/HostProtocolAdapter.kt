@@ -22,20 +22,16 @@ import app.cash.redwood.Modifier
 import app.cash.redwood.RedwoodCodegenApi
 import app.cash.redwood.leaks.LeakDetector
 import app.cash.redwood.protocol.Change
-import app.cash.redwood.protocol.ChangesSink
-import app.cash.redwood.protocol.ChildrenChange
 import app.cash.redwood.protocol.ChildrenChange.Add
 import app.cash.redwood.protocol.ChildrenChange.Move
 import app.cash.redwood.protocol.ChildrenChange.Remove
 import app.cash.redwood.protocol.ChildrenTag
-import app.cash.redwood.protocol.Create
 import app.cash.redwood.protocol.Id
-import app.cash.redwood.protocol.ModifierChange
-import app.cash.redwood.protocol.PropertyChange
 import app.cash.redwood.protocol.RedwoodVersion
 import app.cash.redwood.protocol.WidgetTag
 import app.cash.redwood.widget.ChangeListener
 import app.cash.redwood.widget.Widget
+import app.cash.redwood.widget.WidgetSystem
 import kotlin.native.ObjCName
 
 /**
@@ -52,17 +48,17 @@ public class HostProtocolAdapter<W : Any>(
   @Suppress("UNUSED_PARAMETER")
   guestVersion: RedwoodVersion,
   container: Widget.Children<W>,
-  factory: ProtocolFactory<W>,
+  protocol: HostProtocol,
+  private val widgetSystem: WidgetSystem<W>,
   private val eventSink: UiEventSink,
   private val leakDetector: LeakDetector,
-) : ChangesSink {
-  private val factory = when (factory) {
-    is GeneratedHostProtocol -> factory
+) : UiChangesSink {
+  private val protocol = when (protocol) {
+    is GeneratedHostProtocol -> protocol
   }
 
-  // TODO Use MutableIntObjectMap once https://issuetracker.google.com/issues/378077858 is fixed.
   private val nodes =
-    mutableMapOf<Int, ProtocolNode<W>>(Id.Root.value to RootProtocolNode(container))
+    mutableIntObjectMapOf<ProtocolNode<W>>(Id.Root.value, RootProtocolNode(container))
 
   private val removeNodeById = IdVisitor { nodes.remove(it.value) }
 
@@ -73,7 +69,7 @@ public class HostProtocolAdapter<W : Any>(
 
   private var closed = false
 
-  override fun sendChanges(changes: List<Change>) {
+  override fun sendChanges(changes: List<UiChange>) {
     check(!closed)
 
     @Suppress("NAME_SHADOWING")
@@ -83,16 +79,17 @@ public class HostProtocolAdapter<W : Any>(
       val change = changes[i]
       val id = change.id
       when (change) {
-        is Create -> {
-          val widgetProtocol = factory.widget(change.tag) ?: continue
-          val node = widgetProtocol.createNode(id)
+        is UiCreate -> {
+          val widgetProtocol = protocol.widget(change.tag) ?: continue
+          val node = widgetProtocol.createNode(id, widgetSystem)
           val old = nodes.put(change.id.value, node)
           require(old == null) {
             "Insert attempted to replace existing widget with ID ${change.id.value}"
           }
         }
 
-        is ChildrenChange -> {
+        is UiChildrenChange -> {
+          val change = change.change
           val node = node(id)
           val children = node.children(change.tag) ?: continue
           when (change) {
@@ -125,21 +122,15 @@ public class HostProtocolAdapter<W : Any>(
           }
         }
 
-        is ModifierChange -> {
+        is UiModifierChange -> {
           val node = node(id)
+          node.reuse = change.reuse
 
-          val modifier = change.elements.fold<_, Modifier>(Modifier) { outer, element ->
-            val value = node.widget.value
-            val inner = factory.createModifier(element)
-            if (element.tag.value == REUSE_MODIFIER_TAG) {
-              node.reuse = true
-            }
-            if (inner is Modifier.UnscopedElement) {
-              factory.widgetSystem.apply(value, inner)
-            }
-            outer.then(inner)
+          change.modifier.forEachUnscoped { element ->
+            widgetSystem.apply(node.widget.value, element)
           }
-          node.updateModifier(modifier)
+
+          node.updateModifier(change.modifier)
 
           val widget = node.widget
           if (widget is ChangeListener) {
@@ -147,7 +138,7 @@ public class HostProtocolAdapter<W : Any>(
           }
         }
 
-        is PropertyChange -> {
+        is UiPropertyChange -> {
           val node = node(change.id)
           node.apply(change, eventSink)
 
@@ -178,7 +169,7 @@ public class HostProtocolAdapter<W : Any>(
   public fun close() {
     closed = true
 
-    nodes.values.forEach { node ->
+    nodes.forEachValue { node ->
       node.detach()
     }
     nodes.clear()
@@ -191,7 +182,7 @@ public class HostProtocolAdapter<W : Any>(
 
   private fun poolOrDetach(removedNode: ProtocolNode<W>) {
     if (removedNode.reuse) {
-      removedNode.shapeHash = shapeHash(this.factory, removedNode)
+      removedNode.shapeHash = shapeHash(protocol, removedNode)
       pool.addFirst(removedNode)
       if (pool.size > POOL_SIZE) {
         val evicted = pool.removeLast() // Evict the least-recently added element.
@@ -221,21 +212,21 @@ public class HostProtocolAdapter<W : Any>(
    *
    * Returns the updated set of changes that omits any changes that were implemented with reuse.
    */
-  private fun applyReuse(changes: List<Change>): List<Change> {
+  private fun applyReuse(changes: List<UiChange>): List<UiChange> {
     if (pool.isEmpty()) return changes // Short circuit reuse.
 
     // Find nodes that have Modifier.reuse
     val idToNode = mutableIntObjectMapOf<ReuseNode<W>>()
     var lastCreatedId = Id.Root
     for (change in changes) {
-      if (change is Create) {
+      if (change is UiCreate) {
         lastCreatedId = change.id
         continue
       }
-      if (change !is ModifierChange) continue
+      if (change !is UiModifierChange) continue
 
       // Must have a reuse modifier.
-      if (change.elements.none { it.tag.value == REUSE_MODIFIER_TAG }) continue
+      if (!change.reuse) continue
 
       // Must have a Create node that precedes it.
       if (lastCreatedId != change.id) continue
@@ -261,20 +252,20 @@ public class HostProtocolAdapter<W : Any>(
 
     // If the _shape_ of a reuse candidate matches a pooled node, remove the corresponding changes
     // and use the pooled node.
-    val changesAndNulls: Array<Change?> = changes.toTypedArray()
+    val changesAndNulls: Array<UiChange?> = changes.toTypedArray()
     idToNode.forEachValue { reuseNode ->
       // Only look for reuse roots.
       if (reuseNode.changeIndexForAdd != -1) return@forEachValue
 
       // Find a pooled node with the same shape hash.
-      val shapeHash = shapeHash(factory, reuseNode)
+      val shapeHash = shapeHash(protocol, reuseNode)
       if (shapeHash == 0L) return@forEachValue // Ineligible for pooling.
       val pooledNodeIndex = pool.indexOfFirst { it.shapeHash == shapeHash }
       if (pooledNodeIndex == -1) return@forEachValue // No shape match.
 
       // Confirm the reuse node has the same shape. (This defends against hash collisions.)
       val pooledNode = pool[pooledNodeIndex]
-      if (!shapesEqual(factory, reuseNode, pooledNode)) return@forEachValue
+      if (!shapesEqual(protocol, reuseNode, pooledNode)) return@forEachValue
 
       // Success! Take the pooled node.
       pool.removeAt(pooledNodeIndex)
@@ -294,11 +285,12 @@ public class HostProtocolAdapter<W : Any>(
    */
   private fun putNodesForChildrenOfNodes(
     idToNode: MutableIntObjectMap<ReuseNode<W>>,
-    changes: List<Change>,
+    uiChanges: List<UiChange>,
   ): Boolean {
     var nodesAddedToMap = false
-    for ((index, change) in changes.withIndex()) {
-      if (change !is Add) continue
+    for ((index, uiChange) in uiChanges.withIndex()) {
+      val change = (uiChange as? UiChildrenChange)?.change as? Add?
+      if (change == null) continue
       val parent = idToNode[change.id.value] ?: continue // Parent isn't reused.
       if (change.childId.value in idToNode) continue // Child already created.
 
@@ -319,12 +311,12 @@ public class HostProtocolAdapter<W : Any>(
   /** Returns true if any nodes were added to the map. */
   private fun populateCreateIndexAndEligibleForReuse(
     idToNode: MutableIntObjectMap<ReuseNode<W>>,
-    changes: List<Change>,
+    uiChanges: List<UiChange>,
   ) {
-    for ((index, change) in changes.withIndex()) {
+    for ((index, change) in uiChanges.withIndex()) {
       when {
         // Track the Create for each node in the reuse nodes.
-        change is Create -> {
+        change is UiCreate -> {
           val node = idToNode[change.id.value]
           if (node != null) {
             node.changeIndexForCreate = index
@@ -333,7 +325,7 @@ public class HostProtocolAdapter<W : Any>(
         }
 
         // Any other children change disqualifies this node from reuse.
-        change !is Add && change is ChildrenChange -> {
+        change is UiChildrenChange && change.change !is Add -> {
           val node = idToNode[change.id.value] ?: continue
           node.eligibleForReuse = false
         }
@@ -365,8 +357,8 @@ public class HostProtocolAdapter<W : Any>(
      * descendants into the nodes map.
      */
     fun assignPooledNodeRecursive(
-      nodes: MutableMap<Int, ProtocolNode<W>>,
-      changesAndNulls: Array<Change?>,
+      nodes: MutableIntObjectMap<ProtocolNode<W>>,
+      changesAndNulls: Array<UiChange?>,
       pooled: ProtocolNode<W>,
     ) {
       // Reuse the node.
@@ -405,7 +397,7 @@ private class RootProtocolNode<W : Any>(
 
   private val children = ProtocolChildren(children)
 
-  override fun apply(change: PropertyChange, eventSink: UiEventSink) {
+  override fun apply(change: UiPropertyChange, eventSink: UiEventSink) {
     throw AssertionError("unexpected: $change")
   }
 
@@ -428,12 +420,13 @@ private class RootProtocolNode<W : Any>(
       throw AssertionError()
     }
 
+  override val allChildren: List<Widget.Children<W>>
+    get() = listOf(children.children)
+
   override fun detach() {
     // Do nothing because 'children' is owned by the host's RedwoodView.
   }
 }
-
-private const val REUSE_MODIFIER_TAG = -4_543_827
 
 /**
  * Cache a fixed number of recently removed widgets with the 'reuse' modifier. This number balances

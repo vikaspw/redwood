@@ -78,12 +78,7 @@ internal fun generateWidgetSystem(schemaSet: SchemaSet): FileSpec {
         .addTypeVariable(typeVariableW)
         .addSuperinterface(RedwoodWidget.WidgetSystem.parameterizedBy(typeVariableW))
         .optIn(Stdlib.ExperimentalObjCName, Redwood.RedwoodCodegenApi)
-        .addAnnotation(
-          AnnotationSpec.builder(Stdlib.ObjCName)
-            .addMember("%S", widgetSystemType.simpleName)
-            .addMember("exact = true")
-            .build(),
-        )
+        .objcName(widgetSystemType.simpleName, exact = true)
         .apply {
           for (dependency in schemaSet.all) {
             addSuperinterface(dependency.getWidgetFactoryOwnerType().parameterizedBy(typeVariableW))
@@ -225,12 +220,7 @@ internal fun generateWidgetFactory(schema: Schema): FileSpec {
       TypeSpec.interfaceBuilder(widgetFactoryType)
         .addTypeVariable(typeVariableW)
         .optIn(Stdlib.ExperimentalObjCName)
-        .addAnnotation(
-          AnnotationSpec.builder(Stdlib.ObjCName)
-            .addMember("%S", widgetFactoryType.simpleName)
-            .addMember("exact = true")
-            .build(),
-        )
+        .objcName(widgetFactoryType.simpleName, exact = true)
         .maybeAddKDoc(schema.documentation)
         .apply {
           for (widget in schema.widgets) {
@@ -285,18 +275,33 @@ internal fun generateWidget(schema: Schema, widget: Widget): FileSpec {
         .addTypeVariable(typeVariableW)
         .addSuperinterface(RedwoodWidget.Widget.parameterizedBy(typeVariableW))
         .optIn(Stdlib.ExperimentalObjCName)
-        .addAnnotation(
-          AnnotationSpec.builder(Stdlib.ObjCName)
-            .addMember("%S", flatName)
-            .addMember("exact = true")
-            .build(),
-        )
+        .objcName(flatName, exact = true)
         .maybeAddDeprecation(widget.deprecation)
         .maybeAddKDoc(widget.documentation)
         .apply {
           if (widget is ProtocolWidget) {
             addKdoc("{tag=${widget.tag}}")
           }
+
+          addProperty(
+            PropertySpec.builder(
+              "allChildren",
+              Stdlib.List.parameterizedBy(RedwoodWidget.WidgetChildrenOfW),
+            )
+              .addModifiers(OVERRIDE)
+              .getter(
+                FunSpec.getterBuilder()
+                  .addCode("return %M(⇥\n", Stdlib.listOf)
+                  .apply {
+                    for (trait in widget.traits.filterIsInstance<Children>()) {
+                      addCode("%N,\n", trait.name)
+                    }
+                  }
+                  .addCode("⇤)")
+                  .build(),
+              )
+              .build(),
+          )
 
           for (trait in widget.traits) {
             when (trait) {

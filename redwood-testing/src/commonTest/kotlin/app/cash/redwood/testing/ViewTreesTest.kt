@@ -34,6 +34,7 @@ import app.cash.redwood.protocol.guest.DefaultGuestProtocolAdapter
 import app.cash.redwood.protocol.guest.ProtocolRedwoodComposition
 import app.cash.redwood.protocol.guest.guestRedwoodVersion
 import app.cash.redwood.protocol.host.HostProtocolAdapter
+import app.cash.redwood.protocol.host.UiChange
 import app.cash.redwood.protocol.host.hostRedwoodVersion
 import app.cash.redwood.ui.Cancellable
 import app.cash.redwood.ui.OnBackPressedCallback
@@ -49,7 +50,7 @@ import assertk.assertions.isEqualTo
 import com.example.redwood.testapp.compose.Split
 import com.example.redwood.testapp.compose.TestRow
 import com.example.redwood.testapp.protocol.guest.TestSchemaProtocolWidgetSystemFactory
-import com.example.redwood.testapp.protocol.host.TestSchemaProtocolFactory
+import com.example.redwood.testapp.protocol.host.TestSchemaHostProtocol
 import com.example.redwood.testapp.testing.TestSchemaTester
 import com.example.redwood.testapp.testing.TestSchemaTestingWidgetFactory
 import com.example.redwood.testapp.widget.TestSchemaWidgetSystem
@@ -145,16 +146,20 @@ class ViewTreesTest {
       RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
       RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
     )
-    val protocolNodes = TestSchemaProtocolFactory(widgetSystem)
     val widgetContainer = MutableListChildren<WidgetValue>()
+    val protocol = TestSchemaHostProtocol.create()
     val hostAdapter = HostProtocolAdapter(
       guestVersion = guestRedwoodVersion,
       container = widgetContainer,
-      factory = protocolNodes,
+      protocol = protocol,
+      widgetSystem = widgetSystem,
       eventSink = { throw AssertionError() },
       leakDetector = LeakDetector.none(),
     )
-    hostAdapter.sendChanges(expected)
+    val uiChanges = expected.mapNotNull { change ->
+      UiChange.fromProtocol(protocol, change)
+    }
+    hostAdapter.sendChanges(uiChanges)
 
     assertThat(widgetContainer.map { it.value }).isEqualTo(snapshot)
   }
