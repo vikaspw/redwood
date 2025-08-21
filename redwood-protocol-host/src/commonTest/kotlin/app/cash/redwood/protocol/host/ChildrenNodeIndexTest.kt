@@ -19,7 +19,6 @@ import app.cash.redwood.Modifier
 import app.cash.redwood.RedwoodCodegenApi
 import app.cash.redwood.protocol.ChildrenTag
 import app.cash.redwood.protocol.Id
-import app.cash.redwood.protocol.PropertyChange
 import app.cash.redwood.protocol.WidgetTag
 import app.cash.redwood.widget.MutableListChildren
 import app.cash.redwood.widget.Widget
@@ -130,7 +129,7 @@ private class WidgetNode(override val widget: StringWidget) : ProtocolNode<Strin
   override val widgetTag: WidgetTag get() = WidgetTag(1)
   override val widgetName: String get() = "WidgetNode"
 
-  override fun apply(change: PropertyChange, eventSink: UiEventSink) {
+  override fun apply(change: UiPropertyChange, eventSink: UiEventSink) {
     throw UnsupportedOperationException()
   }
 
@@ -144,4 +143,6 @@ private class WidgetNode(override val widget: StringWidget) : ProtocolNode<Strin
 
 private class StringWidget(override val value: String) : Widget<String> {
   override var modifier: Modifier = Modifier
+  override val allChildren: List<Widget.Children<String>>
+    get() = listOf()
 }

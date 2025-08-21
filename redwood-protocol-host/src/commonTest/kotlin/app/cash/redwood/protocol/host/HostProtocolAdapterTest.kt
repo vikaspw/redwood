@@ -15,6 +15,7 @@
  */
 package app.cash.redwood.protocol.host
 
+import app.cash.redwood.Modifier
 import app.cash.redwood.RedwoodCodegenApi
 import app.cash.redwood.layout.testing.RedwoodLayoutTestingWidgetFactory
 import app.cash.redwood.lazylayout.testing.RedwoodLazyLayoutTestingWidgetFactory
@@ -22,10 +23,7 @@ import app.cash.redwood.leaks.LeakDetector
 import app.cash.redwood.protocol.ChildrenChange.Add
 import app.cash.redwood.protocol.ChildrenChange.Remove
 import app.cash.redwood.protocol.ChildrenTag
-import app.cash.redwood.protocol.Create
 import app.cash.redwood.protocol.Id
-import app.cash.redwood.protocol.ModifierChange
-import app.cash.redwood.protocol.PropertyChange
 import app.cash.redwood.protocol.PropertyTag
 import app.cash.redwood.protocol.WidgetTag
 import app.cash.redwood.protocol.guest.guestRedwoodVersion
@@ -39,13 +37,12 @@ import assertk.assertions.hasMessage
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.message
-import com.example.redwood.testapp.protocol.host.TestSchemaProtocolFactory
+import com.example.redwood.testapp.protocol.host.TestSchemaHostProtocol
 import com.example.redwood.testapp.testing.TestRowValue
 import com.example.redwood.testapp.testing.TestSchemaTestingWidgetFactory
 import com.example.redwood.testapp.widget.TestSchemaWidgetSystem
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
-import kotlinx.serialization.json.JsonPrimitive
 
 @OptIn(RedwoodCodegenApi::class)
 class HostProtocolAdapterTest {
@@ -53,19 +50,18 @@ class HostProtocolAdapterTest {
     val hostAdapter = HostProtocolAdapter(
       guestVersion = guestRedwoodVersion,
       container = MutableListChildren(),
-      factory = TestSchemaProtocolFactory(
-        widgetSystem = TestSchemaWidgetSystem(
-          TestSchema = TestSchemaTestingWidgetFactory(),
-          RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
-          RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
-          RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
-        ),
+      protocol = TestSchemaHostProtocol.create(),
+      widgetSystem = TestSchemaWidgetSystem(
+        TestSchema = TestSchemaTestingWidgetFactory(),
+        RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
+        RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
+        RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
       ),
       eventSink = ::error,
       leakDetector = LeakDetector.none(),
     )
     val changes = listOf(
-      Create(
+      UiCreate(
         id = Id.Root,
         // Button
         tag = WidgetTag(4),
@@ -81,19 +77,18 @@ class HostProtocolAdapterTest {
     val hostAdapter = HostProtocolAdapter(
       guestVersion = guestRedwoodVersion,
       container = MutableListChildren(),
-      factory = TestSchemaProtocolFactory(
-        widgetSystem = TestSchemaWidgetSystem(
-          TestSchema = TestSchemaTestingWidgetFactory(),
-          RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
-          RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
-          RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
-        ),
+      protocol = TestSchemaHostProtocol.create(),
+      widgetSystem = TestSchemaWidgetSystem(
+        TestSchema = TestSchemaTestingWidgetFactory(),
+        RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
+        RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
+        RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
       ),
       eventSink = ::error,
       leakDetector = LeakDetector.none(),
     )
     val changes = listOf(
-      Create(
+      UiCreate(
         id = Id(1),
         // Button
         tag = WidgetTag(4),
@@ -110,13 +105,12 @@ class HostProtocolAdapterTest {
     val hostAdapter = HostProtocolAdapter(
       guestVersion = guestRedwoodVersion,
       container = MutableListChildren(),
-      factory = TestSchemaProtocolFactory(
-        widgetSystem = TestSchemaWidgetSystem(
-          TestSchema = TestSchemaTestingWidgetFactory(),
-          RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
-          RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
-          RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
-        ),
+      protocol = TestSchemaHostProtocol.create(),
+      widgetSystem = TestSchemaWidgetSystem(
+        TestSchema = TestSchemaTestingWidgetFactory(),
+        RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
+        RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
+        RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
       ),
       eventSink = ::error,
       leakDetector = LeakDetector.none(),
@@ -125,23 +119,24 @@ class HostProtocolAdapterTest {
     // Add a button.
     hostAdapter.sendChanges(
       listOf(
-        Create(
+        UiCreate(
           id = Id(1),
           // Button
           tag = WidgetTag(4),
         ),
         // Set Button's required color property.
-        PropertyChange(
+        UiPropertyChange(
           id = Id(1),
-          widgetTag = WidgetTag(4),
-          propertyTag = PropertyTag(3),
-          value = JsonPrimitive(0),
+          tag = PropertyTag(3),
+          value = 0U,
         ),
-        Add(
-          id = Id.Root,
-          tag = ChildrenTag.Root,
-          childId = Id(1),
-          index = 0,
+        UiChildrenChange(
+          change = Add(
+            id = Id.Root,
+            tag = ChildrenTag.Root,
+            childId = Id(1),
+            index = 0,
+          ),
         ),
       ),
     )
@@ -149,23 +144,24 @@ class HostProtocolAdapterTest {
     // Remove the button.
     hostAdapter.sendChanges(
       listOf(
-        Remove(
-          id = Id.Root,
-          tag = ChildrenTag.Root,
-          index = 0,
-          detach = false,
+        UiChildrenChange(
+          change = Remove(
+            id = Id.Root,
+            tag = ChildrenTag.Root,
+            index = 0,
+            detach = false,
+          ),
         ),
       ),
     )
 
     // Ensure targeting the button fails.
     val updateButtonText = listOf(
-      PropertyChange(
+      UiPropertyChange(
         id = Id(1),
-        widgetTag = WidgetTag(4),
         // text
-        propertyTag = PropertyTag(1),
-        value = JsonPrimitive("hello"),
+        tag = PropertyTag(1),
+        value = "hello",
       ),
     )
     val t = assertFailsWith<IllegalStateException> {
@@ -179,13 +175,12 @@ class HostProtocolAdapterTest {
     val hostAdapter = HostProtocolAdapter(
       guestVersion = guestRedwoodVersion,
       container = MutableListChildren(modifierUpdated = { modifierUpdateCount++ }),
-      factory = TestSchemaProtocolFactory(
-        widgetSystem = TestSchemaWidgetSystem(
-          TestSchema = TestSchemaTestingWidgetFactory(),
-          RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
-          RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
-          RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
-        ),
+      protocol = TestSchemaHostProtocol.create(),
+      widgetSystem = TestSchemaWidgetSystem(
+        TestSchema = TestSchemaTestingWidgetFactory(),
+        RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
+        RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
+        RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
       ),
       eventSink = ::error,
       leakDetector = LeakDetector.none(),
@@ -195,9 +190,9 @@ class HostProtocolAdapterTest {
     hostAdapter.sendChanges(
       listOf(
         // Button
-        Create(Id(1), WidgetTag(4)),
-        ModifierChange(Id(1)),
-        Add(Id.Root, ChildrenTag.Root, Id(1), 0),
+        UiCreate(Id(1), WidgetTag(4)),
+        UiModifierChange(Id(1), false, Modifier),
+        UiChildrenChange(Add(Id.Root, ChildrenTag.Root, Id(1), 0)),
       ),
     )
     assertThat(modifierUpdateCount).isEqualTo(0)
@@ -205,7 +200,7 @@ class HostProtocolAdapterTest {
     // Future modifier changes trigger the callback.
     hostAdapter.sendChanges(
       listOf(
-        ModifierChange(Id(1)),
+        UiModifierChange(Id(1), false, Modifier),
       ),
     )
     assertThat(modifierUpdateCount).isEqualTo(1)
@@ -216,13 +211,12 @@ class HostProtocolAdapterTest {
     val host = HostProtocolAdapter(
       guestVersion = guestRedwoodVersion,
       container = container,
-      factory = TestSchemaProtocolFactory(
-        widgetSystem = TestSchemaWidgetSystem(
-          TestSchema = TestSchemaTestingWidgetFactory(),
-          RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
-          RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
-          RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
-        ),
+      protocol = TestSchemaHostProtocol.create(),
+      widgetSystem = TestSchemaWidgetSystem(
+        TestSchema = TestSchemaTestingWidgetFactory(),
+        RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
+        RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
+        RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
       ),
       eventSink = ::error,
       leakDetector = LeakDetector.none(),
@@ -234,39 +228,39 @@ class HostProtocolAdapterTest {
     host.sendChanges(
       listOf(
         // TestRow
-        Create(Id(1), WidgetTag(1)),
-        ModifierChange(Id(1)),
+        UiCreate(Id(1), WidgetTag(1)),
+        UiModifierChange(Id(1), false, Modifier),
         // TestRow
-        Create(Id(2), WidgetTag(1)),
-        ModifierChange(Id(2)),
+        UiCreate(Id(2), WidgetTag(1)),
+        UiModifierChange(Id(2), false, Modifier),
         // Text
-        Create(Id(3), WidgetTag(1_000_003)),
-        PropertyChange(Id(3), WidgetTag(1_000_003), PropertyTag(1), JsonPrimitive("hello")),
-        ModifierChange(Id(3)),
-        Add(Id(2), ChildrenTag(1), Id(3), 0),
-        Add(Id(1), ChildrenTag(1), Id(2), 0),
-        Add(Id.Root, ChildrenTag.Root, Id(1), 0),
+        UiCreate(Id(3), WidgetTag(1_000_003)),
+        UiPropertyChange(Id(3), PropertyTag(1), "hello"),
+        UiModifierChange(Id(3), false, Modifier),
+        UiChildrenChange(Add(Id(2), ChildrenTag(1), Id(3), 0)),
+        UiChildrenChange(Add(Id(1), ChildrenTag(1), Id(2), 0)),
+        UiChildrenChange(Add(Id.Root, ChildrenTag.Root, Id(1), 0)),
       ),
     )
 
     // Validate we're tracking ID=3.
     host.sendChanges(
       listOf(
-        PropertyChange(Id(3), WidgetTag(3), PropertyTag(1), JsonPrimitive("hey")),
+        UiPropertyChange(Id(3), PropertyTag(1), "hey"),
       ),
     )
 
     // Remove root TestRow.
     host.sendChanges(
       listOf(
-        Remove(Id.Root, ChildrenTag.Root, 0, false),
+        UiChildrenChange(Remove(Id.Root, ChildrenTag.Root, 0, false)),
       ),
     )
 
     assertFailure {
       host.sendChanges(
         listOf(
-          PropertyChange(Id(3), WidgetTag(3), PropertyTag(1), JsonPrimitive("sup")),
+          UiPropertyChange(Id(3), PropertyTag(1), "sup"),
         ),
       )
     }.isInstanceOf<IllegalStateException>()
@@ -279,13 +273,12 @@ class HostProtocolAdapterTest {
     val host = HostProtocolAdapter(
       guestVersion = guestRedwoodVersion,
       container = container,
-      factory = TestSchemaProtocolFactory(
-        widgetSystem = TestSchemaWidgetSystem(
-          TestSchema = TestSchemaTestingWidgetFactory(),
-          RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
-          RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
-          RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
-        ),
+      protocol = TestSchemaHostProtocol.create(),
+      widgetSystem = TestSchemaWidgetSystem(
+        TestSchema = TestSchemaTestingWidgetFactory(),
+        RedwoodUiBasic = RedwoodUiBasicTestingWidgetFactory(),
+        RedwoodLayout = RedwoodLayoutTestingWidgetFactory(),
+        RedwoodLazyLayout = RedwoodLazyLayoutTestingWidgetFactory(),
       ),
       eventSink = ::error,
       leakDetector = LeakDetector.none(),
@@ -297,33 +290,33 @@ class HostProtocolAdapterTest {
     host.sendChanges(
       listOf(
         // TestRow
-        Create(Id(1), WidgetTag(1)),
-        ModifierChange(Id(1)),
+        UiCreate(Id(1), WidgetTag(1)),
+        UiModifierChange(Id(1), false, Modifier),
         // TestRow
-        Create(Id(2), WidgetTag(1)),
-        ModifierChange(Id(2)),
+        UiCreate(Id(2), WidgetTag(1)),
+        UiModifierChange(Id(2), false, Modifier),
         // Text
-        Create(Id(3), WidgetTag(1_000_002)),
-        PropertyChange(Id(3), WidgetTag(1_000_002), PropertyTag(1), JsonPrimitive("hello")),
-        ModifierChange(Id(3)),
-        Add(Id(2), ChildrenTag(1), Id(3), 0),
-        Add(Id(1), ChildrenTag(1), Id(2), 0),
-        Add(Id.Root, ChildrenTag.Root, Id(1), 0),
+        UiCreate(Id(3), WidgetTag(1_000_002)),
+        UiPropertyChange(Id(3), PropertyTag(1), "hello"),
+        UiModifierChange(Id(3), false, Modifier),
+        UiChildrenChange(Add(Id(2), ChildrenTag(1), Id(3), 0)),
+        UiChildrenChange(Add(Id(1), ChildrenTag(1), Id(2), 0)),
+        UiChildrenChange(Add(Id.Root, ChildrenTag.Root, Id(1), 0)),
       ),
     )
 
     host.sendChanges(
       listOf(
         // Detach inner TestRow.
-        Remove(Id(1), ChildrenTag(1), 0, detach = true),
+        UiChildrenChange(Remove(Id(1), ChildrenTag(1), 0, detach = true)),
         // Remove outer TestRow.
-        Remove(Id.Root, ChildrenTag.Root, 0, detach = false),
+        UiChildrenChange(Remove(Id.Root, ChildrenTag.Root, 0, detach = false)),
         // New outer TestRow.
-        Create(Id(4), WidgetTag(1)),
-        ModifierChange(Id(4)),
-        Add(Id.Root, ChildrenTag.Root, Id(4), 0),
+        UiCreate(Id(4), WidgetTag(1)),
+        UiModifierChange(Id(4), false, Modifier),
+        UiChildrenChange(Add(Id.Root, ChildrenTag.Root, Id(4), 0)),
         // Re-attach inner TestRow.
-        Add(Id(4), ChildrenTag(1), Id(2), 0),
+        UiChildrenChange(Add(Id(4), ChildrenTag(1), Id(2), 0)),
       ),
     )
 

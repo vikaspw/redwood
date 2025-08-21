@@ -49,14 +49,17 @@ internal object ProtocolGuest {
 }
 
 internal object ProtocolHost {
+  val GeneratedHostProtocol = ClassName("app.cash.redwood.protocol.host", "GeneratedHostProtocol")
+  val GeneratedUiEvent = ClassName("app.cash.redwood.protocol.host", "GeneratedUiEvent")
+  val HostProtocol = ClassName("app.cash.redwood.protocol.host", "HostProtocol")
+  val HostProtocolFactory = HostProtocol.nestedClass("Factory")
   val IdVisitor = ClassName("app.cash.redwood.protocol.host", "IdVisitor")
   val ProtocolMismatchHandler =
     ClassName("app.cash.redwood.protocol.host", "ProtocolMismatchHandler")
   val ProtocolNode = ClassName("app.cash.redwood.protocol.host", "ProtocolNode")
   val ProtocolChildren = ClassName("app.cash.redwood.protocol.host", "ProtocolChildren")
-  val GeneratedProtocolHost = ClassName("app.cash.redwood.protocol.host", "GeneratedHostProtocol")
-  val UiEvent = ClassName("app.cash.redwood.protocol.host", "UiEvent")
   val UiEventSink = ClassName("app.cash.redwood.protocol.host", "UiEventSink")
+  val UiPropertyChange = ClassName("app.cash.redwood.protocol.host", "UiPropertyChange")
   val WidgetHostProtocol = ClassName("app.cash.redwood.protocol.host", "WidgetHostProtocol")
 }
 
@@ -119,7 +122,6 @@ internal object Stdlib {
   val AssertionError = ClassName("kotlin", "AssertionError")
   val ExperimentalObjCName = ClassName("kotlin.experimental", "ExperimentalObjCName")
   val List = ClassName("kotlin.collections", "List")
-  val ObjCName = ClassName("kotlin.native", "ObjCName")
   val Pair = ClassName("kotlin", "Pair")
   val listOf = MemberName("kotlin.collections", "listOf")
 }
@@ -129,6 +131,7 @@ internal val typeVariableW = TypeVariableName("W", listOf(ANY))
 internal object KotlinxSerialization {
   val Contextual = ClassName("kotlinx.serialization", "Contextual")
   val ContextualSerializer = ClassName("kotlinx.serialization", "ContextualSerializer")
+  val DeserializationStrategy = ClassName("kotlinx.serialization", "DeserializationStrategy")
   val ExperimentalSerializationApi = ClassName("kotlinx.serialization", "ExperimentalSerializationApi")
   val KSerializer = ClassName("kotlinx.serialization", "KSerializer")
   val Serializable = ClassName("kotlinx.serialization", "Serializable")
@@ -144,10 +147,6 @@ internal object KotlinxSerialization {
 
   val Json = ClassName("kotlinx.serialization.json", "Json")
   val JsonDefault = Json.nestedClass("Default")
-  val JsonPrimitive = MemberName("kotlinx.serialization.json", "JsonPrimitive")
-  val jsonBoolean = MemberName("kotlinx.serialization.json", "boolean")
-
-  @JvmField val jsonPrimitive = MemberName("kotlinx.serialization.json", "jsonPrimitive")
 }
 
 internal object KotlinxCoroutines {

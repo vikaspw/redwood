@@ -14,10 +14,10 @@ env:
   ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL: 60
 
 jobs:
-  build:
+  check-no-tests:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -25,7 +25,68 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - run: ./scripts/enforce_git_lfs.sh
-      - run: ./gradlew kotlinUpgradeYarnLock build -PredwoodNoApps -x dokkaHtml
+
+      # Disabling allTests should be enough, but https://youtrack.jetbrains.com/issue/KT-74509
+      - run: >
+          ./gradlew
+          -PredwoodNoApps
+          kotlinUpgradeYarnLock
+          check
+          -x test
+          -x allTests
+          -x iosSimulatorArm64Test
+          -x iosX64Test
+          -x jsBrowserTest
+          -x jsNodeTest
+          -x jvmTest
+
+  js-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version-file: .github/workflows/.java-version
+      - uses: gradle/actions/setup-gradle@v4
+      - run: >
+          ./gradlew
+          -PredwoodNoApps
+          kotlinUpgradeYarnLock
+          jsTest
+
+  jvm-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version-file: .github/workflows/.java-version
+      - uses: gradle/actions/setup-gradle@v4
+      - run: >
+          ./gradlew
+          -PredwoodNoApps
+          kotlinUpgradeYarnLock
+          test
+          jvmTest
+          -x testReleaseUnitTest
+          -x dokkaHtml
+
+  native-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version-file: .github/workflows/.java-version
+      - uses: gradle/actions/setup-gradle@v4
+      - run: >
+          ./gradlew
+          -PredwoodNoApps
+          kotlinUpgradeYarnLock
+          iosSimulatorArm64Test
 
   emulator-tests:
     runs-on: ubuntu-latest
@@ -36,7 +97,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -52,7 +113,7 @@ jobs:
   dokka:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -70,9 +131,9 @@ jobs:
           if-no-files-found: error
 
   screenshot-tests:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           lfs: true
       - uses: actions/setup-java@v4
@@ -97,7 +158,7 @@ jobs:
   treehouse-host-check:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -108,9 +169,9 @@ jobs:
       - run: ./gradlew :redwood-treehouse-host:check
 
   sample-counter:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -131,7 +192,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -145,9 +206,9 @@ jobs:
           script: ./gradlew -p samples/counter connectedCheck
 
   sample-emoji:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -159,32 +220,32 @@ jobs:
       - name: Build Emoji Search iOS (UIKit)
         run: xcodebuild -project samples/emoji-search/ios-uikit/EmojiSearchApp.xcodeproj -scheme EmojiSearchApp -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest'
 
-  sample-emoji-emulator:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Enable KVM group perms
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version-file: .github/workflows/.java-version
-      - uses: gradle/actions/setup-gradle@v4
-
-      - uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          emulator-boot-timeout: 20000
-          script: ./gradlew -p samples/emoji-search connectedCheck
+  #sample-emoji-emulator:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Enable KVM group perms
+  #      run: |
+  #        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+  #        sudo udevadm control --reload-rules
+  #        sudo udevadm trigger --name-match=kvm
+  #
+  #    - uses: actions/checkout@v5
+  #    - uses: actions/setup-java@v4
+  #      with:
+  #        distribution: 'zulu'
+  #        java-version-file: .github/workflows/.java-version
+  #    - uses: gradle/actions/setup-gradle@v4
+  #
+  #    - uses: reactivecircus/android-emulator-runner@v2
+  #      with:
+  #        api-level: 29
+  #        emulator-boot-timeout: 20000
+  #        script: ./gradlew -p samples/emoji-search connectedCheck
 
   test-app:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
@@ -196,23 +257,41 @@ jobs:
       - name: Build TestApp iOS (UIKit)
         run: xcodebuild -project test-app/ios-uikit/TestApp.xcodeproj -scheme TestApp -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest'
 
-  publish:
-    runs-on: macos-latest
-    if: ${{ github.ref == 'refs/heads/trunk' && github.repository == 'cashapp/redwood' }}
+  final-status:
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
     needs:
-      - build
+      - check-no-tests
+      - js-tests
+      - jvm-tests
+      - native-tests
       - dokka
       - emulator-tests
       - screenshot-tests
       - sample-counter
       - sample-counter-emulator
       - sample-emoji
-      - sample-emoji-emulator
+      # Blocked by https://github.com/cashapp/redwood/issues/2698
+      #- sample-emoji-emulator
       - test-app
     steps:
-      - uses: actions/checkout@v4
+      - name: Check
+        run: |
+          results=$(tr -d '\n' <<< '${{ toJSON(needs.*.result) }}')
+          if ! grep -q -v -E '(failure|cancelled)' <<< "$results"; then
+            echo "One or more required jobs failed"
+            exit 1
+          fi
 
-      - uses: actions/download-artifact@v4
+  publish:
+    runs-on: macos-latest
+    if: ${{ github.ref == 'refs/heads/trunk' && github.repository == 'cashapp/redwood' }}
+    needs:
+      - final-status
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v5
         with:
           name: site
           path: site
@@ -225,8 +304,8 @@ jobs:
 
       - run: ./gradlew publishToMavenCentral
         env:
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME_APP_CASH }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_PASSWORD_APP_CASH }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_CENTRAL_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SECRET_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SECRET_PASSPHRASE }}
 

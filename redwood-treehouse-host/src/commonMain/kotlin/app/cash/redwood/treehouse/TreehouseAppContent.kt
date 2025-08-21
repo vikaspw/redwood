@@ -19,14 +19,13 @@ import app.cash.redwood.leaks.LeakDetector
 import app.cash.redwood.protocol.Change
 import app.cash.redwood.protocol.EventSink
 import app.cash.redwood.protocol.host.HostProtocolAdapter
-import app.cash.redwood.protocol.host.ProtocolFactory
+import app.cash.redwood.protocol.host.UiChange
 import app.cash.redwood.protocol.host.UiEvent
 import app.cash.redwood.protocol.host.UiEventSink
 import app.cash.redwood.treehouse.Content.State
 import app.cash.redwood.ui.OnBackPressedCallback
 import app.cash.redwood.ui.OnBackPressedDispatcher
 import app.cash.redwood.ui.UiConfiguration
-import app.cash.redwood.widget.Widget
 import app.cash.zipline.ZiplineScope
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -39,7 +38,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.serialization.json.Json
 
 private class InternalState<A : AppService>(
   val viewState: ViewState,
@@ -301,7 +299,6 @@ internal class TreehouseAppContent<A : AppService>(
     return ViewContentCodeBinding(
       codeHost = codeHost,
       dispatchers = dispatchers,
-      eventPublisher = codeSession.eventPublisher,
       contentSource = source,
       internalStateFlow = internalStateFlow,
       externalStateFlow = externalStateFlow,
@@ -330,7 +327,6 @@ internal class TreehouseAppContent<A : AppService>(
 private class ViewContentCodeBinding<A : AppService>(
   codeHost: CodeHost<A>,
   val dispatchers: TreehouseDispatchers,
-  val eventPublisher: EventPublisher,
   contentSource: TreehouseContentSource<A>,
   val internalStateFlow: MutableStateFlow<InternalState<A>>,
   val externalStateFlow: MutableStateFlow<State>,
@@ -372,10 +368,10 @@ private class ViewContentCodeBinding<A : AppService>(
   private var treehouseUiOrNull: ZiplineTreehouseUi? = null
 
   /** Note that this is necessary to break the retain cycle between host and guest. */
-  private val eventBridge = EventBridge(codeSession.json, dispatchers.zipline, bindingScope)
+  private val eventBridge = EventBridge(dispatchers.zipline, bindingScope)
 
   /** Only accessed on [TreehouseDispatchers.ui]. Empty after [initView]. */
-  private val changesAwaitingInitView = ArrayDeque<List<Change>>()
+  private val changesAwaitingInitView = ArrayDeque<List<UiChange>>()
 
   /** Changes applied to the UI. Only accessed on [TreehouseDispatchers.ui]. */
   private var deliveredChangeCount = 0
@@ -421,13 +417,20 @@ private class ViewContentCodeBinding<A : AppService>(
 
   /** Send changes from Zipline to the UI. */
   override fun sendChanges(changes: List<Change>) {
+    val uiChanges = changes.mapNotNull { change ->
+      UiChange.fromProtocol(
+        protocol = codeSession.hostProtocol,
+        change = change,
+      )
+    }
+
     // Receive UI updates on the UI dispatcher.
     bindingScope.launch(dispatchers.ui) {
-      receiveChangesOnUiDispatcher(changes)
+      receiveChangesOnUiDispatcher(uiChanges)
     }
   }
 
-  private fun receiveChangesOnUiDispatcher(changes: List<Change>) {
+  private fun receiveChangesOnUiDispatcher(changes: List<UiChange>) {
     if (canceled) {
       return
     }
@@ -441,17 +444,7 @@ private class ViewContentCodeBinding<A : AppService>(
 
     var hostAdapter = hostAdapterOrNull
     if (hostAdapter == null) {
-      @Suppress("UNCHECKED_CAST") // We don't have a type parameter for the widget type.
-      hostAdapter = HostProtocolAdapter(
-        guestVersion = codeSession.guestProtocolVersion,
-        container = view.children as Widget.Children<Any>,
-        factory = view.widgetSystem.widgetFactory(
-          json = codeSession.json,
-          protocolMismatchHandler = eventPublisher.widgetProtocolMismatchHandler,
-        ) as ProtocolFactory<Any>,
-        eventSink = eventBridge,
-        leakDetector = leakDetector,
-      )
+      hostAdapter = createHostProtocolAdapter(view)
       hostAdapterOrNull = hostAdapter
     }
 
@@ -463,6 +456,17 @@ private class ViewContentCodeBinding<A : AppService>(
     updateChangeCount()
 
     hostAdapter.sendChanges(changes)
+  }
+
+  private fun <W : Any> createHostProtocolAdapter(view: TreehouseView<W>): HostProtocolAdapter<W> {
+    return HostProtocolAdapter(
+      guestVersion = codeSession.guestProtocolVersion,
+      container = view.children,
+      protocol = codeSession.hostProtocol,
+      widgetSystem = view.widgetSystem,
+      eventSink = eventBridge,
+      leakDetector = leakDetector,
+    )
   }
 
   /** Unblock coroutines suspended on TreehouseAppContent.awaitContent(). */
@@ -600,7 +604,6 @@ private fun <W : Any> TreehouseView<W>.showCrashed(
  * problems when mixing garbage-collected Kotlin objects with reference-counted Swift objects.
  */
 private class EventBridge(
-  private val json: Json,
   // Both properties are only accessed on the UI dispatcher and null after cancel().
   var ziplineDispatcher: CoroutineDispatcher?,
   var bindingScope: CoroutineScope?,
@@ -615,7 +618,7 @@ private class EventBridge(
     val bindingScope = this.bindingScope ?: return
     bindingScope.launch(dispatcher) {
       // Perform initial serialization of event arguments into JSON model after the thread hop.
-      val event = uiEvent.toProtocol(json)
+      val event = uiEvent.toProtocol()
 
       delegate?.sendEvent(event)
     }

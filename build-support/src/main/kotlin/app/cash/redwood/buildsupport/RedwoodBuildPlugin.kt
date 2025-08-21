@@ -31,7 +31,6 @@ import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.gradle.BaseExtension
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 import java.io.File
 import kotlinx.validation.ApiValidationExtension
 import kotlinx.validation.ExperimentalBCVApi
@@ -75,7 +74,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 private const val REDWOOD_GROUP_ID = "app.cash.redwood"
 
 // HEY! If you change the major version update release.yaml doc folder.
-private const val REDWOOD_VERSION = "0.18.0-SNAPSHOT"
+private const val REDWOOD_VERSION = "0.19.0-SNAPSHOT"
 
 private val isCiEnvironment = System.getenv("CI") == "true"
 
@@ -164,8 +163,8 @@ class RedwoodBuildPlugin : Plugin<Project> {
       android.apply {
         compileSdkVersion(35)
         compileOptions {
-          it.sourceCompatibility = JavaVersion.VERSION_1_8
-          it.targetCompatibility = JavaVersion.VERSION_1_8
+          it.sourceCompatibility = JavaVersion.VERSION_11
+          it.targetCompatibility = JavaVersion.VERSION_11
         }
         defaultConfig {
           it.minSdk = 21
@@ -221,7 +220,7 @@ class RedwoodBuildPlugin : Plugin<Project> {
       )
     }
 
-    val javaVersion = JavaVersion.VERSION_1_8
+    val javaVersion = JavaVersion.VERSION_11
     tasks.withType(KotlinJvmCompile::class.java).configureEach {
       it.compilerOptions {
         jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
@@ -451,7 +450,7 @@ private class RedwoodBuildExtensionImpl(private val project: Project) : RedwoodB
 
     val mavenPublishing = project.extensions.getByName("mavenPublishing") as MavenPublishBaseExtension
     mavenPublishing.apply {
-      publishToMavenCentral(SonatypeHost.DEFAULT, automaticRelease = true)
+      publishToMavenCentral(automaticRelease = true)
       if (project.providers.systemProperty("RELEASE_SIGNING_ENABLED").getOrElse("true").toBoolean()) {
         signAllPublications()
       }
@@ -588,7 +587,7 @@ private class RedwoodBuildExtensionImpl(private val project: Project) : RedwoodB
         it.archiveClassifier.set("zipline")
       }
 
-      val ziplineConfiguration = project.configurations.create("zipline") {
+      val ziplineConfiguration = project.configurations.register("zipline") {
         it.isVisible = false
         it.isCanBeResolved = false
         it.isCanBeConsumed = true
@@ -611,7 +610,7 @@ private class RedwoodBuildExtensionImpl(private val project: Project) : RedwoodB
       hasApplication = true
 
       // Note: This will crash if you call it twice. We don't need this today, so it's not supported.
-      val ziplineConfiguration = project.configurations.create("zipline") {
+      val ziplineConfiguration = project.configurations.register("zipline") {
         it.isVisible = false
         it.isCanBeResolved = true
         it.isCanBeConsumed = false
