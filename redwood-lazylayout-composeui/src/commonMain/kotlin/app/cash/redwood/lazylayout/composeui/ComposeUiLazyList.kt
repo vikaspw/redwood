@@ -215,7 +215,7 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
 public open class ComposeUiRefreshableLazyList : RefreshableLazyList<@Composable (Modifier) -> Unit> {
   private val delegate = ComposeUiLazyList()
 
-  override val value: @Composable () -> Unit get() = delegate.value
+  override val value: @Composable (Modifier) -> Unit  = delegate.value
   override var modifier: app.cash.redwood.Modifier by delegate::modifier
 
   override val placeholder: ComposeWidgetChildren get() = delegate.placeholder

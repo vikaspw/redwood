@@ -66,7 +66,7 @@ public open class ComposeUiBox(
 
     Box(
       childrenLayoutInfo = computeChildrenLayoutInfo(),
-      modifier = modifier.computeModifier(),
+      modifier = computeModifier(),
     ) {
       children.Render()
     }

@@ -62,9 +62,9 @@ import app.cash.redwood.yoga.isHorizontal
 public open class ComposeUiColumn : Column<@Composable (Modifier) -> Unit> {
   internal val container = ComposeUiFlexContainer(FlexDirection.Column)
 
-  override val value: @Composable () -> Unit get() = container.value
-  override var modifier: app.cash.redwood.Modifier by container::modifier
-  override val children: ComposeWidgetChildren get() = container.children
+  override val value: @Composable (Modifier) -> Unit get() = container.value
+  override var modifier: RedwoodModifier by container::modifier
+  override val children: Widget.Children<@Composable ((Modifier) -> Unit)> get() = container.children
 
   override fun width(width: Constraint): Unit = container.width(width)
   override fun height(height: Constraint): Unit = container.height(height)
@@ -78,9 +78,9 @@ public open class ComposeUiColumn : Column<@Composable (Modifier) -> Unit> {
 public open class ComposeUiRow : Row<@Composable (Modifier) -> Unit> {
   internal val container = ComposeUiFlexContainer(FlexDirection.Row)
 
-  override val value:@Composable () -> Unit get() = container.value
-  override var modifier: app.cash.redwood.Modifier by container::modifier
-  override val children: ComposeWidgetChildren get() = container.children
+  override val value:@Composable (Modifier) -> Unit get() = container.value
+  override var modifier: RedwoodModifier by container::modifier
+  override val children: Widget.Children<@Composable ((Modifier) -> Unit)> get() = container.children
 
   override fun width(width: Constraint): Unit = container.width(width)
   override fun height(height: Constraint): Unit = container.height(height)
@@ -99,6 +99,7 @@ public open class ComposeUiFlexContainer(
   override var modifier: RedwoodModifier = RedwoodModifier
   override val allChildren: List<Widget.Children<@Composable ((Modifier) -> Unit)>>
     get() = listOf(children)
+  override val children: ComposeWidgetChildren = ComposeWidgetChildren()
 
   private var recomposeTick by mutableIntStateOf(0)
   private var width by mutableStateOf(Constraint.Wrap)
