@@ -64,7 +64,7 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
   public var crossAxisAlignment: CrossAxisAlignment by mutableStateOf(CrossAxisAlignment.Start)
   public var scrollItemIndex: ScrollItemIndex? by mutableStateOf<ScrollItemIndex?>(null)
   public var pullRefreshContentColor: Color by mutableStateOf(Color.Black)
-
+  public var reverseLayout: Boolean by mutableStateOf(false)
   internal var testOnlyModifier: Modifier? = null
 
   override var modifier: RedwoodModifier = RedwoodModifier
@@ -115,6 +115,10 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
 
   override fun scrollItemIndex(scrollItemIndex: ScrollItemIndex) {
     this.scrollItemIndex = scrollItemIndex
+  }
+
+  override fun reverseLayout(reverseLayout: Boolean) {
+    this.reverseLayout = reverseLayout
   }
 
   public fun pullRefreshContentColor(pullRefreshContentColor: UInt) {
@@ -192,6 +196,7 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
           modifier = modifier,
           state = state,
           horizontalAlignment = horizontalAlignment,
+          reverseLayout = reverseLayout,
           content = content,
         )
       } else {
@@ -205,6 +210,7 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
             CrossAxisAlignment.Stretch -> Alignment.Top
             else -> throw AssertionError()
           },
+          reverseLayout = reverseLayout,
           content = content,
         )
       }
@@ -233,4 +239,5 @@ public open class ComposeUiRefreshableLazyList : RefreshableLazyList<@Composable
   override fun crossAxisAlignment(crossAxisAlignment: CrossAxisAlignment): Unit = delegate.crossAxisAlignment(crossAxisAlignment)
   override fun scrollItemIndex(scrollItemIndex: ScrollItemIndex): Unit = delegate.scrollItemIndex(scrollItemIndex)
   override fun pullRefreshContentColor(pullRefreshContentColor: UInt): Unit = delegate.pullRefreshContentColor(pullRefreshContentColor)
+  override fun reverseLayout(reverseLayout: Boolean): Unit = delegate.reverseLayout(reverseLayout)
 }

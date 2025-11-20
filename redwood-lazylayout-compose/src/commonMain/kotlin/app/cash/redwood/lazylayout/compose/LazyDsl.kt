@@ -143,6 +143,7 @@ public fun LazyRow(
   height: Constraint = Constraint.Wrap,
   margin: Margin = Margin.Zero,
   verticalAlignment: CrossAxisAlignment = CrossAxisAlignment.Start,
+  reverseLayout: Boolean = false,
   content: LazyListScope.() -> Unit,
 ) {
   LazyList(
@@ -154,6 +155,7 @@ public fun LazyRow(
     crossAxisAlignment = verticalAlignment,
     modifier = modifier,
     placeholder = placeholder,
+    reverseLayout = reverseLayout,
     content = content,
   )
 }
@@ -204,6 +206,7 @@ public fun LazyRow(
   margin: Margin = Margin.Zero,
   verticalAlignment: CrossAxisAlignment = CrossAxisAlignment.Start,
   pullRefreshContentColor: UInt = 0xFF000000u,
+  reverseLayout: Boolean = false,
   content: LazyListScope.() -> Unit,
 ) {
   RefreshableLazyList(
@@ -218,6 +221,7 @@ public fun LazyRow(
     pullRefreshContentColor = pullRefreshContentColor,
     modifier = modifier,
     placeholder = placeholder,
+    reverseLayout = reverseLayout,
     content = content,
   )
 }
@@ -256,6 +260,7 @@ public fun LazyColumn(
   height: Constraint = Constraint.Wrap,
   margin: Margin = Margin.Zero,
   horizontalAlignment: CrossAxisAlignment = CrossAxisAlignment.Start,
+  reverseLayout: Boolean = false,
   content: LazyListScope.() -> Unit,
 ) {
   LazyList(
@@ -267,6 +272,7 @@ public fun LazyColumn(
     crossAxisAlignment = horizontalAlignment,
     modifier = modifier,
     placeholder = placeholder,
+    reverseLayout = reverseLayout,
     content = content,
   )
 }
@@ -317,6 +323,7 @@ public fun LazyColumn(
   margin: Margin = Margin.Zero,
   horizontalAlignment: CrossAxisAlignment = CrossAxisAlignment.Start,
   pullRefreshContentColor: UInt = 0xFF000000u,
+  reverseLayout: Boolean = false,
   content: LazyListScope.() -> Unit,
 ) {
   RefreshableLazyList(
@@ -331,6 +338,7 @@ public fun LazyColumn(
     pullRefreshContentColor = pullRefreshContentColor,
     modifier = modifier,
     placeholder = placeholder,
+    reverseLayout = reverseLayout,
     content = content,
   )
 }
