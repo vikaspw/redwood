@@ -134,6 +134,9 @@ internal class HTMLLazyList(document: Document) : LazyList<HTMLElement> {
     scrollProcessor.scrollItemIndex(scrollItemIndex)
   }
 
+  override fun reverseLayout(reverseLayout: Boolean) {
+  }
+
   override fun isVertical(isVertical: Boolean) {
     value.style.apply {
       flexDirection = if (isVertical) "column" else "row"
@@ -188,5 +191,9 @@ internal class HTMLRefreshableLazyList(
   }
 
   override fun pullRefreshContentColor(pullRefreshContentColor: UInt) {
+  }
+
+  override fun reverseLayout(reverseLayout: Boolean) {
+    TODO("Not yet implemented")
   }
 }

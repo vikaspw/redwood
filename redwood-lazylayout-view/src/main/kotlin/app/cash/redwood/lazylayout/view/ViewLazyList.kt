@@ -185,6 +185,10 @@ internal class ViewLazyList private constructor(
     scrollProcessor.scrollItemIndex(scrollItemIndex)
   }
 
+  override fun reverseLayout(reverseLayout: Boolean) {
+    TODO("Not yet implemented")
+  }
+
   override fun isVertical(isVertical: Boolean) {
     linearLayoutManager.orientation = if (isVertical) RecyclerView.VERTICAL else RecyclerView.HORIZONTAL
   }
@@ -315,6 +319,10 @@ internal class ViewRefreshableLazyList(
 
   override fun pullRefreshContentColor(@ColorInt pullRefreshContentColor: UInt) {
     swipeRefreshLayout.setColorSchemeColors(pullRefreshContentColor.toInt())
+  }
+
+  override fun reverseLayout(reverseLayout: Boolean) {
+    TODO("Not yet implemented")
   }
 
   override fun isVertical(isVertical: Boolean) = delegate.isVertical(isVertical)

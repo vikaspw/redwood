@@ -321,6 +321,10 @@ internal class UIViewLazyList :
     scrollProcessor.scrollItemIndex(scrollItemIndex)
   }
 
+  override fun reverseLayout(reverseLayout: Boolean) {
+    TODO("Not yet implemented")
+  }
+
   override fun itemsBefore(itemsBefore: Int) {
     val updateProcessor = this@UIViewLazyList.updateProcessor ?: error("detached")
     updateProcessor.itemsBefore(itemsBefore)
@@ -484,6 +488,10 @@ internal class UIViewRefreshableLazyList :
 
   override fun pullRefreshContentColor(pullRefreshContentColor: UInt) {
     delegate.requireRefreshControl().tintColor = UIColor(pullRefreshContentColor)
+  }
+
+  override fun reverseLayout(reverseLayout: Boolean) {
+    TODO("Not yet implemented")
   }
 }
 
