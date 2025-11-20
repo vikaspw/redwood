@@ -124,10 +124,12 @@ internal class ViewLazyList private constructor(
             if (isDoingProgrammaticScroll) return // Only notify of user scrolls.
 
             val firstIndex = linearLayoutManager.findFirstVisibleItemPosition()
+           // print("ViewUILazyList before:: $firstIndex ")
             if (firstIndex == RecyclerView.NO_POSITION) return
             val lastIndex = linearLayoutManager.findLastVisibleItemPosition()
+          //  print("ViewUILazyList :: $lastIndex")
             if (lastIndex == RecyclerView.NO_POSITION) return
-
+          //  print("ViewUILazyList:: $firstIndex :: $lastIndex")
             scrollProcessor.onUserScroll(firstIndex, lastIndex)
           }
 

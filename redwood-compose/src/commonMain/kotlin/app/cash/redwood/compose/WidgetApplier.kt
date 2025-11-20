@@ -160,6 +160,7 @@ public class WidgetNode<out W : Widget<V>, V : Any>(
   @RedwoodCodegenApi // https://github.com/Kotlin/binary-compatibility-validator/issues/91
   public companion object {
     public val SetModifiers: WidgetNode<Widget<Any>, Any>.(Modifier) -> Unit = {
+     // println("SetModifiers called")
       recordChanged()
 
       it.forEachUnscoped { element ->

@@ -37,7 +37,7 @@ private const val DEFAULT_SCROLL_INDEX = -1
  *
  * This will retain already-loaded items that it wouldn't load otherwise.
  */
-public class ScrollOptimizedLoadingStrategy(
+public open class ScrollOptimizedLoadingStrategy(
   private val defaultPreloadItemCount: Int = DEFAULT_PRELOAD_ITEM_COUNT,
   private val scrollInProgressPreloadItemCount: Int = SCROLL_IN_PROGRESS_PRELOAD_ITEM_COUNT,
   private val primaryPreloadItemCount: Int = PRIMARY_PRELOAD_ITEM_COUNT,
@@ -120,6 +120,7 @@ public class ScrollOptimizedLoadingStrategy(
     // On initial load, set lastIndex to the end of the loaded window.
     if (lastVisibleIndex == 0) {
       lastVisibleIndex = end
+    //  println("if (lastVisibleIndex == 0)  loadRange isScrollingUp : begin $begin end: $end")
     }
 
     // If we're contiguous with the previous visible window,
@@ -129,25 +130,27 @@ public class ScrollOptimizedLoadingStrategy(
     ) {
       // Case one: Contiguous scroll down
       if (begin in firstIndexFromPrevious1..lastIndexFromPrevious1) {
-        begin = beginFromPrevious1
+      //  begin = beginFromPrevious1
+     //   println("Case one: Contiguous scroll down isScrollingUp : begin $begin end: $end")
       }
 
       // Case two: Contiguous scroll up
       if (end in firstIndexFromPrevious1..lastIndexFromPrevious1) {
-        end = endFromPrevious1
+      //  end = endFromPrevious1
+     //   println("Case two: Contiguous scroll up loadRange isScrollingUp : begin $begin end: $end")
       }
     }
 
     begin = begin.coerceIn(0, itemCount)
     end = end.coerceIn(0, itemCount)
-
+  //  println("loadRange Final Second last : begin $begin end: $end")
     this.firstIndexFromPrevious2 = firstIndexFromPrevious1
     this.firstIndexFromPrevious1 = firstVisibleIndex
     this.lastIndexFromPrevious1 = lastVisibleIndex
 
     this.beginFromPrevious1 = begin
     this.endFromPrevious1 = end
-
+   // println("loadRange Final : begin $begin end: $end")
     return begin until end
   }
 }

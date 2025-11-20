@@ -56,7 +56,7 @@ internal fun LazyList(
     scrollItemIndex = state.programmaticScrollIndex,
     placeholder = { repeat(placeholderPoolSize) { placeholder() } },
     items = {
-      for (index in loadRange) {
+      for (index in 0 until itemCount) {
         key(index) {
           itemProvider.Item(index)
         }
@@ -80,10 +80,18 @@ internal fun RefreshableLazyList(
   modifier: Modifier = Modifier,
   content: LazyListScope.() -> Unit,
 ) {
+ // println("RefreshableLazyList :: content hash ${content.hashCode()}")
   val itemProvider = rememberLazyListItemProvider(content)
   val itemCount = itemProvider.itemCount
+ // println("RefreshableLazyList :: itemCount $itemCount")
   val loadRange = state.loadRange(itemCount)
+ // println("RefreshableLazyList :: loadRange $loadRange")
   val placeholderPoolSize = 20
+
+ /* SideEffect {
+    println("Recomposing :: internal RefreshableLazyList")
+  }*/
+
   RefreshableLazyList(
     isVertical,
     itemsBefore = loadRange.first,
@@ -102,7 +110,7 @@ internal fun RefreshableLazyList(
     placeholder = { repeat(placeholderPoolSize) { placeholder() } },
     pullRefreshContentColor = pullRefreshContentColor,
     items = {
-      for (index in loadRange) {
+      for (index in 0 until itemCount) {
         key(index) {
           itemProvider.Item(index)
         }
