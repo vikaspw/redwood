@@ -42,6 +42,7 @@ public data class LazyList(
   @Property(7) val margin: Margin,
   @Property(8) val crossAxisAlignment: CrossAxisAlignment,
   @Property(9) val scrollItemIndex: ScrollItemIndex,
+  @Property(10) val reverseLayout: Boolean = false,
   @Children(1) val placeholder: () -> Unit,
   @Children(2) val items: () -> Unit,
 )
@@ -122,6 +123,12 @@ public data class RefreshableLazyList(
    * The color of the pull-to-refresh indicator as an ARGB color int.
    */
   @Property(12) val pullRefreshContentColor: UInt,
+
+
+  /**
+   * Reverse layout.
+   */
+  @Property(13) val reverseLayout: Boolean = false,
 
   /**
    * A block which describes the content of each placeholder item.
