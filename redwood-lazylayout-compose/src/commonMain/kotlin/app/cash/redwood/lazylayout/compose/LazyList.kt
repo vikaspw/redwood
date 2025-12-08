@@ -40,15 +40,14 @@ internal fun LazyList(
 ) {
   val itemProvider = rememberLazyListItemProvider(content)
   val itemCount = itemProvider.itemCount
-  val loadRange = state.loadRange(itemCount)
   val placeholderPoolSize = 20
   LazyList(
     isVertical = isVertical,
     onViewportChanged = { localFirstVisibleItemIndex, localLastVisibleItemIndex ->
       state.onUserScroll(localFirstVisibleItemIndex, localLastVisibleItemIndex)
     },
-    itemsBefore = loadRange.first,
-    itemsAfter = (itemCount - loadRange.count() - loadRange.first).coerceIn(0, itemCount),
+    itemsBefore = 0,
+    itemsAfter = 0,
     width = width,
     height = height,
     margin = margin,
@@ -83,22 +82,13 @@ internal fun RefreshableLazyList(
   reverseLayout: Boolean = false,
   content: LazyListScope.() -> Unit,
 ) {
- // println("RefreshableLazyList :: content hash ${content.hashCode()}")
   val itemProvider = rememberLazyListItemProvider(content)
   val itemCount = itemProvider.itemCount
- // println("RefreshableLazyList :: itemCount $itemCount")
-  val loadRange = state.loadRange(itemCount)
- // println("RefreshableLazyList :: loadRange $loadRange")
   val placeholderPoolSize = 20
-
- /* SideEffect {
-    println("Recomposing :: internal RefreshableLazyList")
-  }*/
-
   RefreshableLazyList(
     isVertical,
-    itemsBefore = loadRange.first,
-    itemsAfter = (itemCount - loadRange.count() - loadRange.first).coerceIn(0, itemCount),
+    itemsBefore = 0,
+    itemsAfter = 0,
     onViewportChanged = { localFirstVisibleItemIndex, localLastVisibleItemIndex ->
       state.onUserScroll(localFirstVisibleItemIndex, localLastVisibleItemIndex)
     },

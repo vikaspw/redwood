@@ -28,7 +28,7 @@ import app.cash.redwood.lazylayout.api.ScrollItemIndex
  */
 @Composable
 public fun rememberLazyListState(
-  strategy: LoadingStrategy = ScrollOptimizedLoadingStrategy(),
+  strategy: LoadingStrategy = NoOpLoadingStrategy(),
 ): LazyListState {
   return rememberSaveable(saver = saver) {
     LazyListState(strategy)

@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import app.cash.redwood.Modifier as RedwoodModifier
 import app.cash.redwood.layout.api.Constraint
 import app.cash.redwood.layout.api.CrossAxisAlignment
@@ -153,7 +154,8 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
         refreshing = isRefreshing,
         state = refreshState,
         // Should this be placed somewhere different when horizontal
-        modifier = Modifier.align(Alignment.TopCenter),
+        modifier = Modifier.align(Alignment.TopCenter)
+          .zIndex(Float.POSITIVE_INFINITY),
         contentColor = pullRefreshContentColor,
       )
 
