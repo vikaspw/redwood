@@ -174,7 +174,7 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
           state.scrollToItem(index)
         }
       }
-
+      val pullRefresh = remember { Modifier.pullRefresh(state = refreshState, enabled = onRefresh != null) }
       val modifier = Modifier
         .run { if (width == Constraint.Fill) fillMaxWidth() else this }
         .run { if (height == Constraint.Fill) fillMaxHeight() else this }
@@ -184,7 +184,7 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
           end = margin.end.toPlatformDp().dp,
           bottom = margin.bottom.toPlatformDp().dp,
         )
-        .pullRefresh(state = refreshState, enabled = onRefresh != null)
+        .then(pullRefresh)
         .run { testOnlyModifier?.let { then(it) } ?: this }
       if (isVertical) {
         val horizontalAlignment = when (crossAxisAlignment) {
