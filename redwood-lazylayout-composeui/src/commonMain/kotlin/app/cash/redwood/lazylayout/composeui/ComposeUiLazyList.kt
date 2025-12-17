@@ -174,7 +174,9 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
           state.scrollToItem(index)
         }
       }
-      val pullRefresh = remember { Modifier.pullRefresh(state = refreshState, enabled = onRefresh != null) }
+      val pullRefresh = remember(refreshState, onRefresh) {
+        Modifier.pullRefresh(state = refreshState, enabled = onRefresh != null)
+      }
       val modifier = Modifier
         .run { if (width == Constraint.Fill) fillMaxWidth() else this }
         .run { if (height == Constraint.Fill) fillMaxHeight() else this }
