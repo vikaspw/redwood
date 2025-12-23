@@ -180,12 +180,12 @@ public open class ComposeUiFlexContainer(
     modifier = if (width == Constraint.Fill) {
       modifier.fillMaxWidth()
     } else {
-      modifier.wrapContentWidth(Alignment.Start, unbounded = true)
+      modifier.wrapContentWidth(Alignment.Start)
     }
     modifier = if (height == Constraint.Fill) {
       modifier.fillMaxHeight()
     } else {
-      modifier.wrapContentHeight(Alignment.Top, unbounded = true)
+      modifier.wrapContentHeight(Alignment.Top)
     }
     if (overflow == Overflow.Scroll) {
       val scrollState = rememberScrollState().also { scrollState = it }
