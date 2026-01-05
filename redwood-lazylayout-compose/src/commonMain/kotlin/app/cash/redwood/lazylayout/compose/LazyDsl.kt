@@ -131,6 +131,7 @@ public annotation class ExperimentalRedwoodLazyLayoutApi
  * @param placeholder A block which describes the content of each placeholder item. Note that the
  * placeholder block will be invoked multiple times, and assumes that the content and its sizing on
  * each invocation is identical to one another.
+ * @param initialFirstVisibleItemIndex First visible index.
  * @param content A block which describes the content. Inside this block you can use methods like
  * [LazyListScope.item] to add a single item or [LazyListScope.items] to add a list of items.
  */
@@ -144,6 +145,7 @@ public fun LazyRow(
   margin: Margin = Margin.Zero,
   verticalAlignment: CrossAxisAlignment = CrossAxisAlignment.Start,
   reverseLayout: Boolean = false,
+  initialFirstVisibleItemIndex: Int = 0,
   content: LazyListScope.() -> Unit,
 ) {
   LazyList(
@@ -156,6 +158,7 @@ public fun LazyRow(
     modifier = modifier,
     placeholder = placeholder,
     reverseLayout = reverseLayout,
+    initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
     content = content,
   )
 }
@@ -190,6 +193,7 @@ public fun LazyRow(
  * @param placeholder A block which describes the content of each placeholder item. Note that the
  * placeholder block will be invoked multiple times, and assumes that the content and its sizing on
  * each invocation is identical to one another.
+ * @param initialFirstVisibleItemIndex First visible index.
  * @param content A block which describes the content. Inside this block you can use methods like
  * [LazyListScope.item] to add a single item or [LazyListScope.items] to add a list of items.
  */
@@ -207,6 +211,7 @@ public fun LazyRow(
   verticalAlignment: CrossAxisAlignment = CrossAxisAlignment.Start,
   pullRefreshContentColor: UInt = 0xFF000000u,
   reverseLayout: Boolean = false,
+  initialFirstVisibleItemIndex: Int = 0,
   content: LazyListScope.() -> Unit,
 ) {
   RefreshableLazyList(
@@ -222,6 +227,7 @@ public fun LazyRow(
     modifier = modifier,
     placeholder = placeholder,
     reverseLayout = reverseLayout,
+    initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
     content = content,
   )
 }
@@ -248,6 +254,7 @@ public fun LazyRow(
  * @param placeholder A block which describes the content of each placeholder item. Note that the
  * placeholder block will be invoked multiple times, and assumes that the content and its sizing on
  * each invocation is identical to one another.
+ * @param initialFirstVisibleItemIndex First visible index.
  * @param content A block which describes the content. Inside this block you can use methods like
  * [LazyListScope.item] to add a single item or [LazyListScope.items] to add a list of items.
  */
@@ -261,6 +268,7 @@ public fun LazyColumn(
   margin: Margin = Margin.Zero,
   horizontalAlignment: CrossAxisAlignment = CrossAxisAlignment.Start,
   reverseLayout: Boolean = false,
+  initialFirstVisibleItemIndex: Int = 0,
   content: LazyListScope.() -> Unit,
 ) {
   LazyList(
@@ -273,6 +281,7 @@ public fun LazyColumn(
     modifier = modifier,
     placeholder = placeholder,
     reverseLayout = reverseLayout,
+    initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
     content = content,
   )
 }
@@ -307,6 +316,7 @@ public fun LazyColumn(
  * @param placeholder A block which describes the content of each placeholder item. Note that the
  * placeholder block will be invoked multiple times, and assumes that the content and its sizing on
  * each invocation is identical to one another.
+ * @param initialFirstVisibleItemIndex First visible index.
  * @param content A block which describes the content. Inside this block you can use methods like
  * [LazyListScope.item] to add a single item or [LazyListScope.items] to add a list of items.
  */
@@ -324,6 +334,7 @@ public fun LazyColumn(
   horizontalAlignment: CrossAxisAlignment = CrossAxisAlignment.Start,
   pullRefreshContentColor: UInt = 0xFF000000u,
   reverseLayout: Boolean = false,
+  initialFirstVisibleItemIndex: Int = 0,
   content: LazyListScope.() -> Unit,
 ) {
   RefreshableLazyList(
@@ -339,6 +350,7 @@ public fun LazyColumn(
     modifier = modifier,
     placeholder = placeholder,
     reverseLayout = reverseLayout,
+    initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
     content = content,
   )
 }
