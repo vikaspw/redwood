@@ -146,6 +146,7 @@ fun EmojiSearch(
       },
     )
     LazyColumn(
+      initialFirstVisibleItemIndex = 50,
       refreshing = refreshing,
       onRefresh = { refreshSignal++ },
       state = lazyListState,

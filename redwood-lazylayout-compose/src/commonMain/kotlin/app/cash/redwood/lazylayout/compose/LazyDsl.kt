@@ -350,6 +350,7 @@ public fun LazyColumn(
     modifier = modifier,
     placeholder = placeholder,
     reverseLayout = reverseLayout,
+    initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
     content = content,
   )
 }
