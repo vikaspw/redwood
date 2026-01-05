@@ -36,6 +36,7 @@ internal fun LazyList(
   placeholder: @Composable () -> Unit,
   modifier: Modifier = Modifier,
   reverseLayout: Boolean = false,
+  initialFirstVisibleItemIndex: Int = 0,
   content: LazyListScope.() -> Unit,
 ) {
   val itemProvider = rememberLazyListItemProvider(content)
@@ -56,6 +57,7 @@ internal fun LazyList(
     scrollItemIndex = state.programmaticScrollIndex,
     placeholder = { repeat(placeholderPoolSize) { placeholder() } },
     reverseLayout = reverseLayout,
+    initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
     items = {
       for (index in 0 until itemCount) {
         key(index) {
@@ -80,6 +82,7 @@ internal fun RefreshableLazyList(
   placeholder: @Composable () -> Unit,
   modifier: Modifier = Modifier,
   reverseLayout: Boolean = false,
+  initialFirstVisibleItemIndex: Int = 0,
   content: LazyListScope.() -> Unit,
 ) {
   val itemProvider = rememberLazyListItemProvider(content)
@@ -103,6 +106,7 @@ internal fun RefreshableLazyList(
     placeholder = { repeat(placeholderPoolSize) { placeholder() } },
     pullRefreshContentColor = pullRefreshContentColor,
     reverseLayout = reverseLayout,
+    initialFirstVisibleItemIndex = initialFirstVisibleItemIndex,
     items = {
       for (index in 0 until itemCount) {
         key(index) {
