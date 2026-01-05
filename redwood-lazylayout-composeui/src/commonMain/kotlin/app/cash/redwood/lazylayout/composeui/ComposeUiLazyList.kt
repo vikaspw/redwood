@@ -66,6 +66,7 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
   public var scrollItemIndex: ScrollItemIndex? by mutableStateOf<ScrollItemIndex?>(null)
   public var pullRefreshContentColor: Color by mutableStateOf(Color.Black)
   public var reverseLayout: Boolean by mutableStateOf(false)
+  public var initialFirstVisibleItemIndex: Int by mutableStateOf(0)
   internal var testOnlyModifier: Modifier? = null
 
   override var modifier: RedwoodModifier = RedwoodModifier
@@ -122,6 +123,10 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
     this.reverseLayout = reverseLayout
   }
 
+  override fun initialFirstVisibleItemIndex(initialFirstVisibleItemIndex: Int) {
+    this.initialFirstVisibleItemIndex = initialFirstVisibleItemIndex
+  }
+
   public fun pullRefreshContentColor(pullRefreshContentColor: UInt) {
     this.pullRefreshContentColor = Color(pullRefreshContentColor.toLong())
   }
@@ -160,7 +165,7 @@ public open class ComposeUiLazyList : LazyList<@Composable (Modifier) -> Unit> {
       )
 
       // TODO Fix item count truncation
-      val state = rememberLazyListState()
+      val state = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
       val lastVisibleItemIndex by remember {
         derivedStateOf { state.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
       }
@@ -244,4 +249,6 @@ public open class ComposeUiRefreshableLazyList : RefreshableLazyList<@Composable
   override fun scrollItemIndex(scrollItemIndex: ScrollItemIndex): Unit = delegate.scrollItemIndex(scrollItemIndex)
   override fun pullRefreshContentColor(pullRefreshContentColor: UInt): Unit = delegate.pullRefreshContentColor(pullRefreshContentColor)
   override fun reverseLayout(reverseLayout: Boolean): Unit = delegate.reverseLayout(reverseLayout)
+  override fun initialFirstVisibleItemIndex(initialFirstVisibleItemIndex: Int): Unit =
+    delegate.initialFirstVisibleItemIndex(initialFirstVisibleItemIndex)
 }
