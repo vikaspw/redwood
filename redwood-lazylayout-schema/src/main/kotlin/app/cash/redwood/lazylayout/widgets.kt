@@ -43,6 +43,7 @@ public data class LazyList(
   @Property(8) val crossAxisAlignment: CrossAxisAlignment,
   @Property(9) val scrollItemIndex: ScrollItemIndex,
   @Property(10) val reverseLayout: Boolean = false,
+  @Property(11) val initialFirstVisibleItemIndex: Int = 0,
   @Children(1) val placeholder: () -> Unit,
   @Children(2) val items: () -> Unit,
 )
@@ -129,6 +130,10 @@ public data class RefreshableLazyList(
    * Reverse layout.
    */
   @Property(13) val reverseLayout: Boolean = false,
+  /**
+   * First visible index
+   */
+  @Property(14) val initialFirstVisibleItemIndex: Int = 0,
 
   /**
    * A block which describes the content of each placeholder item.
